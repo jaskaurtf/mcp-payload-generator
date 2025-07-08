@@ -3,7 +3,7 @@ const fs = require('fs-extra');
 const path = require('path');
 
 // === configuration ===
-const EXCEL_FILE_PATH = 'test_script_test.xlsx';
+const EXCEL_FILE_PATH = 'TestScript-test.xlsx';
 const OUTPUT_BASE_DIR = 'output_jsons';
 
 // === header -> json field map ===
