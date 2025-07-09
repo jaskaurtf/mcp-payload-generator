@@ -37,9 +37,9 @@ const defaults = {
 
 // === TRANSACTION TYPE → ACTION MAP ===
 const actionMap = {
-  authorization: "sale",
-  refund: "refund",
-  verification: "verification"
+  authorization: 'sale',
+  refund: 'return',
+  verification: 'avsonly',
 };
 
 // === TYPE NORMALIZATION FOR ADDITIONAL AMOUNTS ===
