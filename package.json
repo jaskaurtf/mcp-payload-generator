@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "zgate": "node zgate-script.js",
-    "zgate-postman": "node zgate-generate-postman-collection.js"
+    "zgate-postman": "node zgate-generate-postman-collection.js",
+    "test": "jest",
+    "clean": "rimraf output_jsons"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +20,8 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "prettier": "^3.6.2"
+    "jest": "^29.7.0",
+    "prettier": "^3.6.2",
+    "rimraf": "^6.0.1"
   }
 }
