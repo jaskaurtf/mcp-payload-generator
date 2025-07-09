@@ -29,7 +29,7 @@ const defaults = {
   debit: 0,
   cof_type: 0,
   card_id_code: "01",
-  secure_auth_data: "",
+  // secure_auth_data: "",
   exp_date: "1226",
   partial_auth_capability: "1",
   card_present: false,
@@ -69,9 +69,11 @@ function processExcel() {
   cleanedData.forEach(row => {
     const jsonOutput = { ...defaults };
 
-    // Map direct fields
+    // Map direct fields, only add if value is not empty
     for (const [header, jsonKey] of Object.entries(fieldMap)) {
-      jsonOutput[jsonKey] = row[header] !== undefined ? String(row[header]) : "";
+      if (row[header] !== undefined && String(row[header]).trim() !== "") {
+        jsonOutput[jsonKey] = String(row[header]);
+      }
     }
 
     // Set action
@@ -91,11 +93,12 @@ function processExcel() {
       const amount = amountList[i];
       const rawType = typeList[i];
       const normalizedType = typeNormalizer[rawType] || rawType;
-
-      additionalAmounts.push({
-        type: normalizedType,
-        amount
-      });
+      if (normalizedType && amount) {
+        additionalAmounts.push({
+          type: normalizedType,
+          amount
+        });
+      }
     }
 
     if (additionalAmounts.length > 0) {

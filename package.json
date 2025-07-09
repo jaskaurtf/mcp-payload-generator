@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "zgate": "node zgate-script.js",
+    "zgate": "npm run clean && node zgate-script.js && npm run zgate-postman",
     "zgate-postman": "node zgate-generate-postman-collection.js",
     "test": "jest",
     "clean": "rimraf output"

@@ -4,7 +4,24 @@ const glob = require('glob');
 const { v4: uuidv4 } = require('uuid');
 
 const OUTPUT_FOLDER = 'output/json';
-const FINAL_COLLECTION_PATH = 'output/postman/postman_collection.json';
+
+// Generate timestamped filename
+function getTimestampedCollectionPath() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const hh = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+  const timestamp = `${yyyy}${mm}${dd}_${hh}${min}${ss}`;
+  return {
+    path: `output/postman/postman_collection_${timestamp}.json`,
+    name: `Automated Zgate Rapid Connect ROL21 - ${timestamp}`
+  };
+}
+
+const { path: FINAL_COLLECTION_PATH, name: COLLECTION_NAME } = getTimestampedCollectionPath();
 
 const testScript = [
   "if (responseHeaders.hasOwnProperty(\"Access-Control-Allow-Origin\")) {",
@@ -29,7 +46,7 @@ async function generatePostmanCollection() {
   const postmanCollection = {
     info: {
       _postman_id: uuidv4(),
-      name: "Zgate Rapid Connect Tests - ROL21",
+      name: COLLECTION_NAME,
       schema: "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
       _exporter_id: "17429670"
     },
@@ -106,6 +123,7 @@ async function generatePostmanCollection() {
   // Ensure output directory exists
   fs.ensureDirSync(path.dirname(FINAL_COLLECTION_PATH));
   await fs.writeJson(FINAL_COLLECTION_PATH, postmanCollection, { spaces: 2 });
+  console.log(`Postman collection written to: ${FINAL_COLLECTION_PATH}`);
 }
 
 generatePostmanCollection();
