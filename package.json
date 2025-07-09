@@ -6,7 +6,7 @@
     "zgate": "node zgate-script.js",
     "zgate-postman": "node zgate-generate-postman-collection.js",
     "test": "jest",
-    "clean": "rimraf output_jsons"
+    "clean": "rimraf output"
   },
   "keywords": [],
   "author": "",

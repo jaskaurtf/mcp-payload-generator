@@ -3,8 +3,8 @@ const path = require('path');
 const glob = require('glob');
 const { v4: uuidv4 } = require('uuid');
 
-const OUTPUT_FOLDER = 'output_jsons';
-const FINAL_COLLECTION_PATH = 'postman_collection.json';
+const OUTPUT_FOLDER = 'output/json';
+const FINAL_COLLECTION_PATH = 'output/postman/postman_collection.json';
 
 const testScript = [
   "if (responseHeaders.hasOwnProperty(\"Access-Control-Allow-Origin\")) {",
@@ -103,6 +103,8 @@ async function generatePostmanCollection() {
     postmanCollection.item[0].item.push(postmanRequest);
   }
 
+  // Ensure output directory exists
+  fs.ensureDirSync(path.dirname(FINAL_COLLECTION_PATH));
   await fs.writeJson(FINAL_COLLECTION_PATH, postmanCollection, { spaces: 2 });
 }
 

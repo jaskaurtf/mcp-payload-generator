@@ -4,7 +4,7 @@ const path = require('path');
 
 // === CONFIGURATION ===
 const excelFilePath = 'TestScript-test.xlsx';
-const outputBaseDir = 'output_jsons';
+const outputBaseDir = 'output/json';
 
 // === HEADER -> JSON FIELD MAP ===
 const fieldMap = {
