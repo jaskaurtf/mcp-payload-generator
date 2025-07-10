@@ -72,7 +72,11 @@ function processExcel() {
     // Map direct fields, only add if value is not empty
     for (const [header, jsonKey] of Object.entries(fieldMap)) {
       if (row[header] !== undefined && String(row[header]).trim() !== "") {
-        jsonOutput[jsonKey] = String(row[header]);
+        if (jsonKey === 'card_type') {
+          jsonOutput[jsonKey] = String(row[header]).toLowerCase();
+        } else {
+          jsonOutput[jsonKey] = String(row[header]);
+        }
       }
     }
 
