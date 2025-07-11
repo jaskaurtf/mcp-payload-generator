@@ -22,7 +22,7 @@ function getTimestampedCollectionPath(transactionType) {
   };
 }
 
-const testScript = [
+const TEST_SCRIPT = [
   'let response = pm.response.json();',
   '',
   "pm.test(`Transaction status must be 'approved'`, function () {",
@@ -56,7 +56,7 @@ async function generatePostmanCollectionsByTransactionType() {
           listen: 'test',
           script: {
             type: 'text/javascript',
-            exec: testScript,
+            exec: TEST_SCRIPT,
           },
         },
       ],

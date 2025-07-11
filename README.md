@@ -18,7 +18,7 @@ This project converts Excel test scripts into structured JSON payloads for payme
 3. **Default Values**: Populates each output with required default fields.
 4. **Transaction Type Mapping**: Maps transaction types (e.g., authorization → sale).
 5. **Additional Amounts**: Supports multiple additional amounts/types per row, normalizing type names.
-6. **Output Structure**: Outputs are written to `output_jsons/<payment_type>/<transaction_type>/<card_type>/<order_number>.json`.
+6. **Output Structure**: Outputs are written to `output/json/<payment_type>/<transaction_type>/<card_type>/<order_number>.json`.
 
 ### Usage
 
@@ -27,7 +27,7 @@ npm run zgate
 ```
 
 - This runs `zgate-script.js` and generates JSON payloads from the Excel file.
-- Output is written to the `output_jsons` directory.
+- Output is written to the `output/json` directory.
 
 ### NPM Scripts
 - `zgate`: Run the main script to generate JSONs.
@@ -37,14 +37,15 @@ npm run zgate
 ### Project Structure
 ```
 MCP-Payload--Generator/
-├── zgate-script.js         # Main Excel-to-JSON script
-├── script.js               # (Alternate/legacy script)
-├── TestScript-test.xlsx    # Input Excel file
-├── output_jsons/           # Generated JSON payloads (ignored by git)
-├── __tests__/              # Jest test scripts (mirrors output structure)
-├── package.json            # NPM scripts and dependencies
-├── .gitignore, .prettier*  # Project config
-└── README.md               # This file
+├── zgate-script.js                             # Main Excel-to-JSON script
+├── zgate-generate-postman-collection.js        # generate postman json 
+├── script.js                                   # (Alternate/legacy script)
+├── TestScript-test.xlsx                        # Input Excel file
+├── output/json/                                # Generated JSON payloads (ignored by git)
+├── __tests__/                                  # Jest test scripts (mirrors output structure)
+├── package.json                                # NPM scripts and dependencies
+├── .gitignore, .prettier*                      # Project config
+└── README.md                                   # This file
 ```
 
 ### Testing & Validation
