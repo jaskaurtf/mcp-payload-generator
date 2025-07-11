@@ -8,28 +8,27 @@ const outputBaseDir = 'output/json';
 
 // === HEADER -> JSON FIELD MAP ===
 const fieldMap = {
-  "avs billing address": "billing_street",
-  "avs billing postal code": "billing_zip",
-  "bill payment indicator": "bill_payment",
-  "tax indicator": "sales_tax",
-  "deferred payment plan": "deferred",
-  "transaction amount": "amount",
-  "account number": "account_number",
-  "entry mode": "entry_mode",
-  "trans. currency": "trans_currency",
-  "card type": "card_type",
-  "payment type": "payment_type",
-  "test case number": "order_number",
-  "ccv data": "cvv"
+  'avs billing address': 'billing_street',
+  'avs billing postal code': 'billing_zip',
+  'bill payment indicator': 'bill_payment',
+  'tax indicator': 'sales_tax',
+  'deferred payment plan': 'deferred',
+  'transaction amount': 'amount',
+  'account number': 'account_number',
+  'entry mode': 'entry_mode',
+  'trans. currency': 'currency_code',
+  'card type': 'card_type',
+  'payment type': 'payment_type',
+  'test case number': 'order_number',
+  'ccv data': 'cvv',
 };
 
 // === DEFAULT VALUES ===
 const defaults = {
   terminal_msr_capable: 0,
   debit: 0,
-  cof_type: 0,
   card_id_code: "01",
-  // secure_auth_data: "",
+  secure_auth_data: "MDAwMDAwMDAwMDAwMDAwMzIyNzY=",
   exp_date: "1226",
   partial_auth_capability: "1",
   card_present: false,
@@ -73,7 +72,13 @@ function processExcel() {
     for (const [header, jsonKey] of Object.entries(fieldMap)) {
       if (row[header] !== undefined && String(row[header]).trim() !== "") {
         if (jsonKey === 'card_type') {
-          jsonOutput[jsonKey] = String(row[header]).toLowerCase();
+          let cardTypeValue = String(row[header]).toLowerCase();
+          if (cardTypeValue === 'mastercard') {
+            cardTypeValue = 'mc';
+          } else if (cardTypeValue === 'discover') {
+            cardTypeValue = 'disc';
+          }
+          jsonOutput[jsonKey] = cardTypeValue;
         } else {
           jsonOutput[jsonKey] = String(row[header]);
         }
@@ -83,6 +88,11 @@ function processExcel() {
     // Set action
     const transactionType = (row["transaction type"] || "").toLowerCase();
     jsonOutput.action = actionMap[transactionType] || transactionType;
+
+    // If entry mode is COF, add cof_type: 0
+    if ((row["entry mode"] || '').trim().toLowerCase() === 'cof') {
+      jsonOutput.cof_type = 0;
+    }
 
     // Additional Amounts block
     const amtStr = row["additional amount"] || "";
@@ -110,9 +120,14 @@ function processExcel() {
     }
 
     // Folder structure
+    let cardType = (row["card type"] || "unknown").toLowerCase().replace(/\s+/g, "_");
+    if (cardType === 'mastercard') {
+      cardType = 'mc';
+    } else if (cardType === 'discover') {
+      cardType = 'disc';
+    }
     const paymentType = (row["payment type"] || "unknown").toLowerCase().replace(/\s+/g, "_");
     const transTypeFolder = transactionType || "unknown";
-    const cardType = (row["card type"] || "unknown").toLowerCase().replace(/\s+/g, "_");
     const orderNumber = row["test case number"] || `unknown-${Math.random().toString(36).slice(2, 8)}`;
 
     const outputDir = path.join(outputBaseDir, paymentType, transTypeFolder, cardType);
