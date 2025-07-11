@@ -73,7 +73,7 @@ async function generatePostmanCollectionsByTransactionType() {
           raw: 'https://{{url}}/{{namespace}}/transactions/cc/sale/keyed',
           protocol: 'https',
           host: ['{{url}}'],
-          path: ['{{namespace}}', 'transactions'],
+          path: ['{{namespace}}', 'transactions/cc/sale/keyed'],
         },
       },
       response: [],
