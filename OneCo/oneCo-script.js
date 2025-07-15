@@ -4,7 +4,7 @@ const path = require('path');
 
 // === CONFIGURATION ===
 const EXCEL_FILE_PATH = 'TestScript-test.xlsx';
-const OUTPUT_BASE_DIR = 'output/oneco/json';
+const OUTPUT_BASE_DIR = 'output/json';
 
 // === MAPPING ===
 const FIELD_MAP = {

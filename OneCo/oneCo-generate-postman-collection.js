@@ -3,7 +3,7 @@ const path = require('path');
 const glob = require('glob');
 const { v4: uuidv4 } = require('uuid');
 
-const OUTPUT_FOLDER = 'output/oneco/json';
+const OUTPUT_FOLDER = 'output/json';
 
 const TEST_SCRIPT = [
   'let response = pm.response.json();',
@@ -24,7 +24,7 @@ function getTimestampedCollectionPath(transactionType) {
   const timestamp = `${yyyy}${mm}${dd}_${hh}${min}${ss}`;
   const safeType = transactionType.replace(/[^a-z0-9]/gi, '_').toLowerCase();
   return {
-    path: `output/oneco/postman/postman_collection_${safeType}_${timestamp}.json`,
+    path: `output/postman/postman_collection_${safeType}_${timestamp}.json`,
     name: `Automated OneCo Rapid Connect ${transactionType} - ${timestamp}`,
   };
 }
