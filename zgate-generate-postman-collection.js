@@ -3,7 +3,9 @@ const path = require('path');
 const glob = require('glob');
 const { v4: uuidv4 } = require('uuid');
 
-const OUTPUT_FOLDER = 'output/json';
+// Allow override via command line arguments
+const BASE_DIR = process.argv[2] || 'output';
+const OUTPUT_FOLDER = `${BASE_DIR}/json`;
 
 // Generate timestamped filename for a transaction type
 function getTimestampedCollectionPath(transactionType) {
@@ -17,7 +19,7 @@ function getTimestampedCollectionPath(transactionType) {
   const timestamp = `${yyyy}${mm}${dd}_${hh}${min}${ss}`;
   const safeType = transactionType.replace(/[^a-z0-9]/gi, '_').toLowerCase();
   return {
-    path: `output/postman/postman_collection_${safeType}_${timestamp}.json`,
+    path: `${BASE_DIR}/postman/postman_collection_${safeType}_${timestamp}.json`,
     name: `Automated Zgate Rapid Connect ${transactionType} - ${timestamp}`,
   };
 }
@@ -33,22 +35,68 @@ const TEST_SCRIPT = [
 async function generatePostmanCollectionsByTransactionType() {
   const files = glob.sync(`${OUTPUT_FOLDER}/**/*.json`);
   const requestsByTypeAndMode = {};
+  const uniqueCurrencyCodes = new Set();
 
   for (const file of files) {
     const data = await fs.readJson(file);
     const jsonBody = JSON.stringify(data, null, 2);
     const pathParts = file.split(path.sep);
     const pathLength = pathParts.length;
-    const transactionType = (pathParts[pathLength - 3] || 'unknown').toUpperCase();
-    const paymentType = (pathParts[pathLength - 4] || 'unknown').toUpperCase();
-    const cardType = (pathParts[pathLength - 2] || 'unknown').toUpperCase();
+    // Robustly extract sheet name and currency code from file path (folders under 'json')
+    const jsonRootIdx = pathParts.findIndex((p) => p === 'json');
+    let sheetName = 'UNKNOWN_SHEET';
+    let currencyCodeFromPath = '';
+    // Detect if the file is under 'mandatory' or 'non-mandatory' for output path
+    let postmanTypeFolder = '';
+    if (jsonRootIdx !== -1) {
+      // Check for mandatory/non-mandatory
+      if (pathParts[jsonRootIdx - 1] === 'mandatory') {
+        postmanTypeFolder = 'mandatory';
+      } else if (pathParts[jsonRootIdx - 1] === 'non-mandatory') {
+        postmanTypeFolder = 'non-mandatory';
+      }
+      // Extract sheet and currency from path
+      sheetName = pathParts[jsonRootIdx + 1] || 'UNKNOWN_SHEET';
+      currencyCodeFromPath = (pathParts[jsonRootIdx + 2] || '').toUpperCase();
+    }
+    const paymentType =
+      jsonRootIdx !== -1 && pathParts.length > jsonRootIdx + 3
+        ? pathParts[jsonRootIdx + 3].toUpperCase()
+        : (data.payment_type || 'unknown').toUpperCase();
+    const transactionType =
+      jsonRootIdx !== -1 && pathParts.length > jsonRootIdx + 4
+        ? pathParts[jsonRootIdx + 4].toUpperCase()
+        : 'UNKNOWN';
+    const cardType =
+      jsonRootIdx !== -1 && pathParts.length > jsonRootIdx + 5
+        ? pathParts[jsonRootIdx + 5].toUpperCase()
+        : (data.card_type || 'unknown').toUpperCase();
     const fileName = path.basename(file, '.json');
     const entryModeRaw = data.entry_mode || '';
     const entryMode = String(entryModeRaw).trim().toLowerCase();
     const cofType = data.cof_type !== undefined ? String(data.cof_type).trim() : '';
     const orderNumber = data.order_number || fileName;
-    const currencyCode = (data.trans_currency || '').toUpperCase().replace(/\s+/g, '');
-    const name = `[${orderNumber}] ${paymentType} ${transactionType} - ${cardType} ${entryMode}`;
+    // Always use currency code from data for grouping
+    const currencyCode = (data.currency_code || currencyCodeFromPath || '')
+      .toUpperCase()
+      .replace(/\s+/g, '');
+    uniqueCurrencyCodes.add(currencyCode);
+    let collectionKey = '';
+    if (cofType !== '' && cofType !== '0' && cofType !== 'false') {
+      collectionKey = `COF_${transactionType}_CUR_${currencyCode}`;
+    } else if (entryMode === 'keyed') {
+      collectionKey = `KEYED_${transactionType}_CUR_${currencyCode}`;
+    } else {
+      const entryModeKey = entryMode ? entryMode.toUpperCase().replace(/\s+/g, '') : 'OTHER';
+      collectionKey = `${entryModeKey}_${transactionType}_CUR_${currencyCode}`;
+    }
+    // Group by postmanTypeFolder|sheetName|currencyCode|collectionKey
+    const groupKey = `${postmanTypeFolder}|${sheetName}|${currencyCode}|${collectionKey}`;
+    if (!requestsByTypeAndMode[groupKey]) {
+      requestsByTypeAndMode[groupKey] = [];
+    }
+    // Create a descriptive name for the Postman request
+    const name = `${transactionType} - ${cardType} - ${entryMode.toUpperCase()} - ${currencyCode} - ${orderNumber}`;
     const postmanRequest = {
       name,
       event: [
@@ -76,26 +124,33 @@ async function generatePostmanCollectionsByTransactionType() {
         },
       },
       response: [],
+      sheetName: sheetName.toUpperCase(),
+      postmanTypeFolder, // Store type for output path
     };
-    // Determine collection type: 'keyed' or 'cof'
-    let collectionKey = '';
-    if (cofType !== '' && cofType !== '0' && cofType !== 'false') {
-      collectionKey = `COF_${transactionType}`;
-    } else if (entryMode === 'keyed') {
-      collectionKey = `KEYED_${transactionType}`;
-    } else {
-      const entryModeKey = entryMode ? entryMode.toUpperCase().replace(/\s+/g, '') : 'OTHER';
-      collectionKey = `${entryModeKey}_${transactionType}`;
-    }
-    if (!requestsByTypeAndMode[collectionKey]) {
-      requestsByTypeAndMode[collectionKey] = [];
-    }
-    requestsByTypeAndMode[collectionKey].push(postmanRequest);
+    requestsByTypeAndMode[groupKey].push(postmanRequest);
   }
 
-  for (const [collectionKey, requests] of Object.entries(requestsByTypeAndMode)) {
-    const { path: collectionPath, name: collectionName } =
-      getTimestampedCollectionPath(collectionKey);
+  for (const [groupKey, requests] of Object.entries(requestsByTypeAndMode)) {
+    // Parse groupKey for output path
+    const [postmanTypeFolder, sheetName, currencyFolder] = groupKey.split('|');
+    const { path: baseCollectionPath, name: collectionName } =
+      getTimestampedCollectionPath(groupKey);
+    const collectionPath = postmanTypeFolder
+      ? path.join(
+          BASE_DIR,
+          'postman',
+          postmanTypeFolder,
+          sheetName,
+          currencyFolder,
+          path.basename(baseCollectionPath)
+        )
+      : path.join(
+          BASE_DIR,
+          'postman',
+          sheetName,
+          currencyFolder,
+          path.basename(baseCollectionPath)
+        );
     const postmanCollection = {
       info: {
         _postman_id: uuidv4(),
@@ -112,8 +167,15 @@ async function generatePostmanCollectionsByTransactionType() {
     };
     fs.ensureDirSync(path.dirname(collectionPath));
     await fs.writeJson(collectionPath, postmanCollection, { spaces: 2 });
-    console.log(`Postman collection written to: ${collectionPath}`);
   }
 }
 
-generatePostmanCollectionsByTransactionType();
+// Run the script if executed directly
+if (require.main === module) {
+  generatePostmanCollectionsByTransactionType();
+}
+
+// Export for testing
+module.exports = {
+  generatePostmanCollectionsByTransactionType,
+};

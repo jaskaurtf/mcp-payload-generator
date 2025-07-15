@@ -1,0 +1,68 @@
+{
+  "info": {
+    "_postman_id": "18ae4408-1e13-490b-aafa-4b836d02dd07",
+    "name": "Automated Zgate Rapid Connect |non-mandatory|840|KEYED_AUTHORIZATION_CUR_840 - 20250714_223032",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "17429670"
+  },
+  "item": [
+    {
+      "name": "Test Cases",
+      "item": [
+        {
+          "name": "AUTHORIZATION - MC - KEYED - 840 - TEST001",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let response = pm.response.json();",
+                  "",
+                  "pm.test(`Transaction status must be 'approved'`, function () {",
+                  "    pm.expect(response.status.toLowerCase()).to.eql(\"approved\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "user-id",
+                "value": "{{ecomm_user_id}}"
+              },
+              {
+                "key": "user-key",
+                "value": "{{ecomm_user_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"sale\",\n  \"amount\": \"10.00\",\n  \"card_type\": \"mc\",\n  \"entry_mode\": \"keyed\",\n  \"currency_code\": \"840\",\n  \"order_number\": \"TEST001\"\n}"
+            },
+            "url": {
+              "raw": "https://{{url}}/{{namespace}}/transactions",
+              "protocol": "https",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "{{namespace}}",
+                "transactions"
+              ]
+            }
+          },
+          "response": [],
+          "sheetName": "NON-MANDATORY",
+          "postmanTypeFolder": ""
+        }
+      ]
+    }
+  ]
+}

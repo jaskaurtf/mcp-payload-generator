@@ -1,0 +1,68 @@
+{
+  "info": {
+    "_postman_id": "bc66cf97-d5ef-4c0b-ac1e-1a4bbc13b602",
+    "name": "Automated Zgate Rapid Connect |non-mandatory|978|KEYED_REFUND_CUR_978 - 20250714_223032",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "17429670"
+  },
+  "item": [
+    {
+      "name": "Test Cases",
+      "item": [
+        {
+          "name": "REFUND - AMEX - KEYED - 978 - TEST003",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "let response = pm.response.json();",
+                  "",
+                  "pm.test(`Transaction status must be 'approved'`, function () {",
+                  "    pm.expect(response.status.toLowerCase()).to.eql(\"approved\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "user-id",
+                "value": "{{ecomm_user_id}}"
+              },
+              {
+                "key": "user-key",
+                "value": "{{ecomm_user_key}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"return\",\n  \"amount\": \"20.00\",\n  \"card_type\": \"amex\",\n  \"entry_mode\": \"keyed\",\n  \"currency_code\": \"978\",\n  \"order_number\": \"TEST003\"\n}"
+            },
+            "url": {
+              "raw": "https://{{url}}/{{namespace}}/transactions",
+              "protocol": "https",
+              "host": [
+                "{{url}}"
+              ],
+              "path": [
+                "{{namespace}}",
+                "transactions"
+              ]
+            }
+          },
+          "response": [],
+          "sheetName": "NON-MANDATORY",
+          "postmanTypeFolder": ""
+        }
+      ]
+    }
+  ]
+}

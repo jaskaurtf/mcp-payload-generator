@@ -8,7 +8,10 @@
     "oneco": "npm run clean && node OneCo/oneCo-script.js && npm run oneco-postman",
     "oneco-postman": "node OneCo/oneCo-generate-postman-collection.js",
     "test": "jest",
-    "clean": "rimraf output"
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "clean": "rimraf output",
+    "clean:test": "rimraf test-output"
   },
   "keywords": [],
   "author": "",
