@@ -2,4 +2,3 @@ node_modules/
 _MACOSX/
 output/
 test-output/
-coverage
