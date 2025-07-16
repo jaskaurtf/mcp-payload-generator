@@ -18,7 +18,7 @@ describe('Postman Collection Generation', () => {
 
   afterEach(() => {
     // Clean up module cache
-    delete require.cache[require.resolve('../zgate-generate-postman-collection')];
+    delete require.cache[require.resolve('../generate-postman-collection')];
   });
 
   // Create test JSON files
@@ -28,8 +28,8 @@ describe('Postman Collection Generation', () => {
     process.argv.push(TEST_OUTPUT_DIR); // Add our test output directory
 
     // Clear module cache and import fresh
-    delete require.cache[require.resolve('../zgate-generate-postman-collection')];
-    const postmanModule = require('../zgate-generate-postman-collection');
+    delete require.cache[require.resolve('../generate-postman-collection')];
+    const postmanModule = require('../generate-postman-collection');
     generatePostmanCollectionsByTransactionType =
       postmanModule.generatePostmanCollectionsByTransactionType;
 

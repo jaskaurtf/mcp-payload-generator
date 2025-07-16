@@ -2,6 +2,16 @@ const fs = require('fs-extra');
 const path = require('path');
 const glob = require('glob');
 const { v4: uuidv4 } = require('uuid');
+const { buildRequest } = require('./requestBuilder');
+
+// === Get command line args requestType ===
+const args = process.argv.slice(2);
+const requestTypeArg = args.find(arg => arg.startsWith('--requestType='));
+const requestType = requestTypeArg.split('=')[1];
+
+// === Get command line args for name ===
+const nameArg = args.find(arg => arg.startsWith('--name='));
+const collectionName = nameArg.split('=')[1];
 
 // Allow override via command line arguments
 const BASE_DIR = process.argv[2] || 'output';
@@ -20,7 +30,7 @@ function getTimestampedCollectionPath(transactionType) {
   const safeType = transactionType.replace(/[^a-z0-9]/gi, '_').toLowerCase();
   return {
     path: `${BASE_DIR}/postman/postman_collection_${safeType}_${timestamp}.json`,
-    name: `Automated Zgate Rapid Connect ${transactionType} - ${timestamp}`,
+    name: `Automated ${collectionName} Rapid Connect ${transactionType} - ${timestamp}`,
   };
 }
 
@@ -72,7 +82,7 @@ async function generatePostmanCollectionsByTransactionType() {
         ? pathParts[jsonRootIdx + 5].toUpperCase()
         : (data.card_type || 'unknown').toUpperCase();
     const fileName = path.basename(file, '.json');
-    const entryModeRaw = data.entry_mode || '';
+    const entryModeRaw = data.entry_mode || data.entry_mode_id || '';
     const entryMode = String(entryModeRaw).trim().toLowerCase();
     const cofType = data.cof_type !== undefined ? String(data.cof_type).trim() : '';
     const orderNumber = data.order_number || fileName;
@@ -82,9 +92,9 @@ async function generatePostmanCollectionsByTransactionType() {
       .replace(/\s+/g, '');
     uniqueCurrencyCodes.add(currencyCode);
     let collectionKey = '';
-    if (cofType !== '' && cofType !== '0' && cofType !== 'false') {
+    if ((cofType !== '' && cofType !== '0' && cofType !== 'false') || entryMode === 'c') {
       collectionKey = `COF_${transactionType}_CUR_${currencyCode}`;
-    } else if (entryMode === 'keyed') {
+    } else if (entryMode === 'keyed' || entryMode === 'k') {
       collectionKey = `KEYED_${transactionType}_CUR_${currencyCode}`;
     } else {
       const entryModeKey = entryMode ? entryMode.toUpperCase().replace(/\s+/g, '') : 'OTHER';
@@ -108,21 +118,7 @@ async function generatePostmanCollectionsByTransactionType() {
           },
         },
       ],
-      request: {
-        method: 'POST',
-        header: [
-          { key: 'user-id', value: '{{ecomm_user_id}}' },
-          { key: 'user-key', value: '{{ecomm_user_key}}' },
-          { key: 'Content-Type', value: 'application/json' },
-        ],
-        body: { mode: 'raw', raw: jsonBody },
-        url: {
-          raw: 'https://{{url}}/{{namespace}}/transactions',
-          protocol: 'https',
-          host: ['{{url}}'],
-          path: ['{{namespace}}', 'transactions'],
-        },
-      },
+      request: buildRequest(requestType, jsonBody),
       response: [],
       sheetName: sheetName.toUpperCase(),
       postmanTypeFolder, // Store type for output path

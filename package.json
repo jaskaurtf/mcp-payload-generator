@@ -4,9 +4,9 @@
   "main": "index.js",
   "scripts": {
     "zgate": "npm run clean && node zgate-script.js && npm run zgate-postman",
-    "zgate-postman": "node zgate-generate-postman-collection.js",
+    "zgate-postman": "node generate-postman-collection.js output --requestType=zgate --name=Zgate",
     "oneco": "npm run clean && node OneCo/oneCo-script.js && npm run oneco-postman",
-    "oneco-postman": "node OneCo/oneCo-generate-postman-collection.js",
+    "oneco-postman": "node generate-postman-collection.js output --requestType=oneCo --name=OneCo",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",

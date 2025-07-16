@@ -4,6 +4,6 @@ module.exports = {
   collectCoverage: true,
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov'],
-  collectCoverageFrom: ['zgate-script.js', 'zgate-generate-postman-collection.js'],
+  collectCoverageFrom: ['zgate-script.js', 'generate-postman-collection.js'],
   setupFilesAfterEnv: ['./tests/setup.js'],
 };

@@ -38,7 +38,7 @@ npm run zgate
 ```
 MCP-Payload--Generator/
 ├── zgate-script.js                             # Main Excel-to-JSON script
-├── zgate-generate-postman-collection.js        # generate postman json 
+├── generate-postman-collection.js        # generate postman json 
 ├── script.js                                   # (Alternate/legacy script)
 ├── TestScript-test.xlsx                        # Input Excel file
 ├── output/json/                                # Generated JSON payloads (ignored by git)

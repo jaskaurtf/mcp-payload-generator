@@ -1,5 +1,5 @@
 TN:
-SF:zgate-generate-postman-collection.js
+SF:generate-postman-collection.js
 FN:11,getTimestampedCollectionPath
 FN:35,generatePostmanCollectionsByTransactionType
 FN:46,(anonymous_2)
