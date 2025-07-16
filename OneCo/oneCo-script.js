@@ -3,10 +3,14 @@ const fs = require('fs-extra');
 const path = require('path');
 
 // === CONFIGURATION ===
-const EXCEL_FILE_PATH = 'TestScript-test.xlsx';
-const OUTPUT_BASE_DIR = 'output/json';
+const DEFAULT_EXCEL_FILE_PATH = 'TestScript-test.xlsx';
+const DEFAULT_OUTPUT_BASE_DIR = 'output/json';
 
-// === MAPPING ===
+// Allow override via command line arguments
+const EXCEL_FILE_PATH = process.argv[2] || DEFAULT_EXCEL_FILE_PATH;
+const OUTPUT_BASE_DIR = process.argv[3] ? `${process.argv[3]}/json` : DEFAULT_OUTPUT_BASE_DIR;
+
+// === HEADER -> JSON FIELD MAP ===
 const FIELD_MAP = {
   'transaction amount': 'transaction_amount',
   'notification email address': 'notification_email_address',
@@ -26,36 +30,42 @@ const DEFAULTS = {
   exp_date: "1226",
 };
 
-// === MAIN SCRIPT ===
-function generateJsonFiles() {
-  const workbook = xlsx.readFile(EXCEL_FILE_PATH);
-  const sheetName = workbook.SheetNames[0];
-  const rawData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: "" });
-  
-  const cleanedData = rawData.map(row => {
+// === MAIN FUNCTION ===
+// Pure function: process a single sheet's data (array of rows)
+function processSheetData(sheetName, rawData, outputBaseDir = OUTPUT_BASE_DIR) {
+  // Normalize headers and create cleaned row list
+  const cleanedData = rawData.map((row) => {
     const cleaned = {};
     Object.entries(row).forEach(([key, value]) => {
-      const normalizedKey = key.replace(/\s+/g, " ").replace(/\r?\n|\r/g, " ").trim().toLowerCase();
+      const normalizedKey = key
+        .replace(/\s+/g, ' ')
+        .replace(/\r?\n|\r/g, ' ')
+        .trim()
+        .toLowerCase();
       cleaned[normalizedKey] = value;
     });
     return cleaned;
   });
 
-  cleanedData.forEach(row => {
+  const outputs = [];
+  cleanedData.forEach((row) => {
     const jsonOutput = { ...DEFAULTS };
 
-    // === Map Fields ===
+    // Map direct fields, only add if value is not empty
     for (const [header, jsonKey] of Object.entries(FIELD_MAP)) {
-      const value = row[header] || '';
-      if (jsonKey === 'entry_mode_id') {
-        jsonOutput[jsonKey] = value.trim().charAt(0).toUpperCase();
-      } else if (jsonKey === 'postal_code') {
-        jsonOutput.billing_address = { postal_code: String(value).trim() };
-      } else {
-        jsonOutput[jsonKey] = String(value).trim();
+      const row_value = row[header];
+      if (row_value !== undefined && String(row_value).trim() !== '') {
+        if (jsonKey === 'entry_mode_id') {
+          jsonOutput[jsonKey] = row_value.trim().charAt(0).toUpperCase();
+        } else if (jsonKey === 'postal_code') {
+          jsonOutput.billing_address = { postal_code: String(row_value).trim() };
+        } else {
+          jsonOutput[jsonKey] = String(row_value).trim();
+        }
       }
     }
-    const transactionType = (row["transaction type"] || "").toLowerCase();
+    // Set action
+    const transactionType = (row['transaction type'] || '').toLowerCase();
     // === Calculate subtotal_amount from "Additional Amount" column ===
     const addAmountStr = row['additional amount'] || '';
     const subtotal = addAmountStr
@@ -64,8 +74,8 @@ function generateJsonFiles() {
       .reduce((sum, val) => sum + val, 0);
     jsonOutput.subtotal_amount = subtotal.toFixed(2);
 
-    // === Directory Structure: payment type / transaction type / card type ===
-    let cardType = (row["card type"] || "unknown").toLowerCase().replace(/\s+/g, "_");
+    // Folder structure
+    let cardType = (row['card type'] || 'unknown').toLowerCase().replace(/\s+/g, '_');
     if (cardType === 'mastercard') {
       cardType = 'mc';
     } else if (cardType === 'discover') {
@@ -74,20 +84,44 @@ function generateJsonFiles() {
 
     jsonOutput.account_number = '{{' + cardType + '_' + row['entry mode']?.toLowerCase() + '}}';
 
-    const paymentType = (row["payment type"] || "unknown").toLowerCase().replace(/\s+/g, "_");
-    const transTypeFolder = transactionType || "unknown";
-
-    const orderNumber = row["test case number"] || `unknown-${Math.random().toString(36).slice(2, 8)}`;
-    const fileName = `${orderNumber}.json`;
-
-    const outputDir = path.join(OUTPUT_BASE_DIR, paymentType, transTypeFolder, cardType);
-    const outputPath = path.join(outputDir, fileName);
-
-    fs.ensureDirSync(outputDir);
-    fs.writeJsonSync(outputPath, jsonOutput, { spaces: 2 });
-
+    const paymentType = (row['payment type'] || 'unknown').toLowerCase().replace(/\s+/g, '_');
+    const transTypeFolder = transactionType || 'unknown';
+    const orderNumber =
+      row['test case number'] || `unknown-${Math.random().toString(36).slice(2, 8)}`;
+    // Group by currency code
+    const currencyCode = (row['trans. currency'] || 'unknown').toUpperCase().replace(/\s+/g, '');
+    // Add sheetName and currencyCode to output path
+    const outputDir = path.join(
+      outputBaseDir,
+      sheetName,
+      currencyCode,
+      paymentType,
+      transTypeFolder,
+      cardType
+    );
+    const outputPath = path.join(outputDir, `${orderNumber}.json`);
+    outputs.push({ outputDir, outputPath, jsonOutput });
   });
-
+  return outputs;
 }
 
-generateJsonFiles();
+function processExcelFile(filePath = EXCEL_FILE_PATH, outputBaseDir = OUTPUT_BASE_DIR) {
+  const workbook = xlsx.readFile(filePath);
+  workbook.SheetNames.forEach((sheetName) => {
+    const rawData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+    const outputs = processSheetData(sheetName, rawData, outputBaseDir);
+    outputs.forEach(({ outputDir, outputPath, jsonOutput }) => {
+      fs.ensureDirSync(outputDir);
+      fs.writeJsonSync(outputPath, jsonOutput, { spaces: 2 });
+    });
+  });
+}
+
+if (require.main === module) {
+  processExcelFile();
+}
+
+module.exports = {
+  processExcelFile,
+  processSheetData,
+};
