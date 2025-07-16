@@ -7,11 +7,11 @@ const { buildRequest } = require('./requestBuilder');
 // === Get command line args requestType ===
 const args = process.argv.slice(2);
 const requestTypeArg = args.find(arg => arg.startsWith('--requestType='));
-const requestType = requestTypeArg.split('=')[1];
+const requestType = requestTypeArg ? requestTypeArg.split('=')[1] : 'zgate';
 
 // === Get command line args for name ===
 const nameArg = args.find(arg => arg.startsWith('--name='));
-const collectionName = nameArg.split('=')[1];
+const collectionName = nameArg ? nameArg.split('=')[1] : 'Zgate';
 
 // Allow override via command line arguments
 const BASE_DIR = process.argv[2] || 'output';
