@@ -5,7 +5,7 @@
   "scripts": {
     "zgate": "npm run clean && node zgate-script.js && npm run zgate-postman",
     "zgate-postman": "node generate-postman-collection.js output --requestType=zgate --name=Zgate",
-    "oneco": "npm run clean && node OneCo/oneCo-script.js && npm run oneco-postman",
+    "oneco": "npm run clean && node oneco-script.js && npm run oneco-postman",
     "oneco-postman": "node generate-postman-collection.js output --requestType=oneCo --name=OneCo",
     "test": "jest",
     "test:watch": "jest --watch",
