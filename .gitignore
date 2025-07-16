@@ -3,3 +3,4 @@ _MACOSX/
 output/
 test-output/
 coverage/
+coverage\lcov-report/
