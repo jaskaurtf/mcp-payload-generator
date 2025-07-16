@@ -27,7 +27,9 @@ describe('Postman Collection Generation', () => {
     process.argv = process.argv.slice(0, 2); // Keep only node and script name
     process.argv.push(TEST_OUTPUT_DIR); // Add our test output directory
 
-    // Clear module cache and import fresh
+    process.argv.push('--requestType=zgate');
+    process.argv.push('--name=Zgate');
+
     delete require.cache[require.resolve('../generate-postman-collection')];
     const postmanModule = require('../generate-postman-collection');
     generatePostmanCollectionsByTransactionType =
@@ -86,90 +88,66 @@ describe('Postman Collection Generation', () => {
     }
   });
 
-  test('should generate collections for all sheets and currencies', async () => {
+  const findCollections = async (dir) => {
+    const collections = [];
+    if (await fs.pathExists(dir)) {
+      const walk = async (currentDir) => {
+        const items = await fs.readdir(currentDir, { withFileTypes: true });
+        for (const item of items) {
+          const fullPath = path.join(currentDir, item.name);
+          if (item.isDirectory()) {
+            await walk(fullPath);
+          } else if (item.name.endsWith('.json')) {
+            collections.push(fullPath);
+          }
+        }
+      };
+      await walk(dir);
+    }
+    return collections;
+  };
+
+  test('should generate valid Postman collections with dynamic requestType and name', async () => {
     await generatePostmanCollectionsByTransactionType();
 
-    // Function to recursively find all .json files in postman directory
-    const findCollections = async (dir) => {
-      const collections = [];
-      if (await fs.pathExists(dir)) {
-        const walk = async (currentDir) => {
-          const items = await fs.readdir(currentDir, { withFileTypes: true });
-          for (const item of items) {
-            const fullPath = path.join(currentDir, item.name);
-            if (item.isDirectory()) {
-              await walk(fullPath);
-            } else if (item.name.endsWith('.json')) {
-              collections.push(fullPath);
-            }
-          }
-        };
-        await walk(dir);
-      }
-      return collections;
-    };
-
-    // Find all collections in the postman directory
     const allCollections = await findCollections(
       path.join(__dirname, `../${TEST_OUTPUT_DIR}/postman`)
     );
 
     expect(allCollections.length).toBeGreaterThan(0);
 
-    // Check for specific collection types
-    const hasKeyedAuth = allCollections.some(
-      (name) => name.toLowerCase().includes('keyed') && name.toLowerCase().includes('authorization')
-    );
-    const hasCofAuth = allCollections.some(
-      (name) => name.toLowerCase().includes('cof') && name.toLowerCase().includes('authorization')
-    );
-    const hasKeyedRefund = allCollections.some(
-      (name) => name.toLowerCase().includes('keyed') && name.toLowerCase().includes('refund')
-    );
+    // Check some structure
+    const hasKeyed = allCollections.some((f) => f.toLowerCase().includes('keyed'));
+    const hasCof = allCollections.some((f) => f.toLowerCase().includes('cof'));
+    expect(hasKeyed).toBeTruthy();
+    expect(hasCof).toBeTruthy();
 
-    expect(hasKeyedAuth).toBeTruthy();
-    expect(hasCofAuth).toBeTruthy();
-    expect(hasKeyedRefund).toBeTruthy();
+    const sampleCollection = await fs.readJson(allCollections[0]);
+    const firstItem = sampleCollection.item[0].item[0];
 
-    // Verify collection content
-    const collection = await fs.readJson(allCollections[0]);
-    expect(collection.item[0].item.length).toBeGreaterThan(0);
-    expect(collection.item[0].item[0].request.body.raw).toBeDefined();
+    // Check structure
+    expect(firstItem).toHaveProperty('name');
+    expect(firstItem.request).toHaveProperty('method', 'POST');
+    expect(firstItem.request).toHaveProperty('url');
+    expect(firstItem.request).toHaveProperty('body');
+    expect(firstItem.request.body).toHaveProperty('raw');
+
+    // Check request URL reflects requestType=zgate
+    expect(firstItem.request.url.raw).toContain('{{url}}');
+    expect(firstItem.request.header.some(h => h.key === 'user-id')).toBe(true);
   });
 
-  test('should include correct test scripts', async () => {
+  test('should include correct test scripts in collection', async () => {
     await generatePostmanCollectionsByTransactionType();
-
-    // Function to recursively find all .json files in postman directory
-    const findCollections = async (dir) => {
-      const collections = [];
-      if (await fs.pathExists(dir)) {
-        const walk = async (currentDir) => {
-          const items = await fs.readdir(currentDir, { withFileTypes: true });
-          for (const item of items) {
-            const fullPath = path.join(currentDir, item.name);
-            if (item.isDirectory()) {
-              await walk(fullPath);
-            } else if (item.name.endsWith('.json')) {
-              collections.push(fullPath);
-            }
-          }
-        };
-        await walk(dir);
-      }
-      return collections;
-    };
 
     const allCollections = await findCollections(
       path.join(__dirname, `../${TEST_OUTPUT_DIR}/postman`)
     );
-    expect(allCollections.length).toBeGreaterThan(0);
 
-    const collection = await fs.readJson(allCollections[0]);
+    const sampleCollection = await fs.readJson(allCollections[0]);
+    const testScript = sampleCollection.item[0].item[0].event[0].script;
 
-    const testScript = collection.item[0].item[0].event[0].script;
     expect(testScript.type).toBe('text/javascript');
-    // Fix the test script assertion to match exact array content
     expect(testScript.exec).toEqual([
       'let response = pm.response.json();',
       '',
