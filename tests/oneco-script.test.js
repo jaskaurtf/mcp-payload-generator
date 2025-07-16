@@ -3,7 +3,7 @@ const path = require('path');
 const xlsx = require('xlsx');
 const { processSheetData, processExcelFile } = require('../oneco-script');
 
-const TEST_OUTPUT_DIR = 'test_output/json';
+const TEST_OUTPUT_DIR = 'test-output/json';
 
 describe('Excel to JSON Converter', () => {
   const sampleSheetName = 'Sheet1';
