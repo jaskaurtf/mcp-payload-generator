@@ -17,6 +17,7 @@ const FIELD_MAP = {
   'ccv data': 'cvv',
   'entry mode': 'entry_mode_id',
   'avs billing postal code': 'postal_code',
+  'trans. currency': 'currency_code',
 };
 
 // === DEFAULTS ===
