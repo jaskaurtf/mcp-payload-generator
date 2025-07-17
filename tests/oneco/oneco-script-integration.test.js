@@ -16,7 +16,7 @@ describe('Excel to JSON Integration', () => {
             reject(error);
             return;
           }
-          console.log(`stdout: ${stdout}`);
+
           if (stderr) console.error(`stderr: ${stderr}`);
           resolve(stdout);
         }
