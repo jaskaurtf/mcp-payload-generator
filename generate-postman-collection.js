@@ -4,13 +4,33 @@ const glob = require('glob');
 const { v4: uuidv4 } = require('uuid');
 const { buildRequest } = require('./requestBuilder');
 
+// === Currency code to country mapping ===
+const CURRENCY_COUNTRY_MAP = {
+  '036': 'AUD_Australia_036',
+  124: 'CAD_Canada_124',
+  344: 'HKD_HongKong_344',
+  392: 'JPY_Japan_392',
+  400: 'JOD_Jordan_400',
+  554: 'NZD_NewZealand_554',
+  702: 'SGD_Singapore_702',
+  764: 'THB_Thailand_764',
+  840: 'USD_UnitedStates_840',
+  978: 'EUR_Europe_978',
+  826: 'GBP_UnitedKingdom_826',
+};
+
+// Function to get currency with country name
+function getCurrencyWithCountry(currencyCode) {
+  return CURRENCY_COUNTRY_MAP[currencyCode] || `${currencyCode}_Unknown`;
+}
+
 // === Get command line args requestType ===
 const args = process.argv.slice(2);
-const requestTypeArg = args.find(arg => arg.startsWith('--requestType='));
+const requestTypeArg = args.find((arg) => arg.startsWith('--requestType='));
 const requestType = requestTypeArg ? requestTypeArg.split('=')[1] : 'zgate';
 
 // === Get command line args for name ===
-const nameArg = args.find(arg => arg.startsWith('--name='));
+const nameArg = args.find((arg) => arg.startsWith('--name='));
 const collectionName = nameArg ? nameArg.split('=')[1] : 'Zgate';
 
 // Allow override via command line arguments
@@ -29,7 +49,7 @@ function getTimestampedCollectionPath(transactionType) {
   const timestamp = `${yyyy}${mm}${dd}_${hh}${min}${ss}`;
   const safeType = transactionType.replace(/[^a-z0-9]/gi, '_').toLowerCase();
   return {
-    path: `${BASE_DIR}/postman/postman_collection_${safeType}_${timestamp}.json`,
+    path: `${BASE_DIR}/postman/${collectionName.toLowerCase()}_${safeType}_${timestamp}.json`,
     name: `Automated ${collectionName} Rapid Connect ${transactionType} - ${timestamp}`,
   };
 }
@@ -90,23 +110,24 @@ async function generatePostmanCollectionsByTransactionType() {
     const currencyCode = (data.currency_code || currencyCodeFromPath || '')
       .toUpperCase()
       .replace(/\s+/g, '');
+    const currencyWithCountry = getCurrencyWithCountry(currencyCode);
     uniqueCurrencyCodes.add(currencyCode);
     let collectionKey = '';
     if ((cofType !== '' && cofType !== '0' && cofType !== 'false') || entryMode === 'c') {
-      collectionKey = `COF_${transactionType}_CUR_${currencyCode}`;
+      collectionKey = `COF_${transactionType}_CUR_${currencyWithCountry}`;
     } else if (entryMode === 'keyed' || entryMode === 'k') {
-      collectionKey = `KEYED_${transactionType}_CUR_${currencyCode}`;
+      collectionKey = `KEYED_${transactionType}_CUR_${currencyWithCountry}`;
     } else {
       const entryModeKey = entryMode ? entryMode.toUpperCase().replace(/\s+/g, '') : 'OTHER';
-      collectionKey = `${entryModeKey}_${transactionType}_CUR_${currencyCode}`;
+      collectionKey = `${entryModeKey}_${transactionType}_CUR_${currencyWithCountry}`;
     }
-    // Group by postmanTypeFolder|sheetName|currencyCode|collectionKey
-    const groupKey = `${postmanTypeFolder}|${sheetName}|${currencyCode}|${collectionKey}`;
+    // Group by postmanTypeFolder|sheetName|currencyWithCountry|collectionKey
+    const groupKey = `${postmanTypeFolder}|${sheetName}|${currencyWithCountry}|${collectionKey}`;
     if (!requestsByTypeAndMode[groupKey]) {
       requestsByTypeAndMode[groupKey] = [];
     }
     // Create a descriptive name for the Postman request
-    const name = `${transactionType} - ${cardType} - ${entryMode.toUpperCase()} - ${currencyCode} - ${orderNumber}`;
+    const name = `${transactionType} - ${cardType} - ${entryMode.toUpperCase()} - ${currencyWithCountry} - ${orderNumber}`;
     const postmanRequest = {
       name,
       event: [

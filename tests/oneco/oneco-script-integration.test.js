@@ -26,7 +26,7 @@ describe('Excel to JSON Integration', () => {
     // Check if files are created for Sheet1 (now with currency code in path)
     const sheet1Path = path.join(
       __dirname,
-      `../../${TEST_OUTPUT_DIR}/json/Sheet1/840/credit/authorization/mc/TEST001.json`
+      `../../${TEST_OUTPUT_DIR}/json/Sheet1/USD_UnitedStates_840/credit/authorization/mc/TEST001_USD_UnitedStates_840.json`
     );
     expect(fs.existsSync(sheet1Path)).toBeTruthy();
     const sheet1Data = await fs.readJson(sheet1Path);
@@ -39,7 +39,7 @@ describe('Excel to JSON Integration', () => {
     // Check if files are created for Sheet2 (now with currency code in path)
     const sheet2Path = path.join(
       __dirname,
-      `../../${TEST_OUTPUT_DIR}/json/Sheet2/978/credit/refund/visa/TEST002_COF.json`
+      `../../${TEST_OUTPUT_DIR}/json/Sheet2/EUR_Europe_978/credit/refund/visa/TEST002_COF_EUR_Europe_978.json`
     );
     expect(fs.existsSync(sheet2Path)).toBeTruthy();
     const sheet2Data = await fs.readJson(sheet2Path);
