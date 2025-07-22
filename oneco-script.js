@@ -39,11 +39,9 @@ const FIELD_MAP = {
   'entry mode': 'entry_mode_id',
   'industry': 'industry_type',
   'trans. currency': 'currency_code',
-  'test case number': 'test_case_number',
-  'avs billing address': 'billing_street',
-  'avs billing postal code': 'postal_code',
+  'test case number': 'order_number',
+  'avs billing address': 'billing_address',
   'bill payment indicator': 'bill_payment',
-  'tax indicator': 'sales_tax',
   'card type': 'card_type',
   'payment type': 'payment_type',
 };
@@ -87,12 +85,20 @@ function processSheetData(sheetName, rawData, outputBaseDir = OUTPUT_BASE_DIR) {
         if (jsonKey === 'entry_mode_id') {
           jsonOutput[jsonKey] = row_value.trim().charAt(0).toUpperCase();
         } else if (jsonKey === 'bill_payment') {
-          jsonOutput.bill_payment = row_value;
-          jsonOutput.bill_payment_indicator = {
-            installment: row_value === 'Installment' ? true : false,
-            installment_number: 1, //default is = 1
-            installment_count: 1
-          };
+          jsonOutput.bill_payment = row_value ? true : false;
+          jsonOutput.installment = row_value === 'Installment' ? true : false;
+          jsonOutput.installment_number = 1;
+          jsonOutput.installment_count = 1;
+          jsonOutput.recurring = row_value === 'Recurring' ? true : false;
+          jsonOutput.recurring_number = 1;
+        } else if (jsonKey === 'billing_address') {
+          jsonOutput.billing_address = {
+            'city': '',
+            'state': '',
+            'postal_code': row['avs billing postal code'],
+            'phone': '',
+            'country': ''
+          }
         } else {
           jsonOutput[jsonKey] = String(row_value).trim();
         }

@@ -34,6 +34,24 @@ describe('Excel to JSON Integration', () => {
       transaction_amount: '10.00',
       entry_mode_id: 'K',
       currency_code: '840',
+      card_type: 'mastercard',
+      payment_type: 'credit',
+      order_number: 'TEST001',
+      account_number: '12345678',
+      industry_type: 'Ecomm',
+      billing_address: {
+        "city": "",
+        "country": "",
+        "phone": "",
+        "postal_code": "11747",
+        "state": "",
+      },
+      bill_payment: true,
+      installment: false,
+      installment_number: 1,
+      installment_count: 1,
+      recurring: true,
+      recurring_number: 1
     });
 
     // Check if files are created for Sheet2 (now with currency code in path)
@@ -47,6 +65,24 @@ describe('Excel to JSON Integration', () => {
       transaction_amount: '20.00',
       entry_mode_id: 'C',
       currency_code: '978',
+      card_type: 'visa',
+      payment_type: 'credit',
+      order_number: 'TEST002_COF',
+      account_number: '123456789',
+      industry_type: 'Ecomm',
+      billing_address: {
+        "city": "",
+        "country": "",
+        "phone": "",
+        "postal_code": "11747",
+        "state": "",
+      },
+      bill_payment: true,
+      installment: true,
+      installment_number: 1,
+      installment_count: 1,
+      recurring: false,
+      recurring_number: 1
     });
   });
 });

@@ -25,6 +25,11 @@ const TEST_DATA = {
       'trans. currency': '840',
       'transaction amount': '10.00',
       'test case number': 'TEST001',
+      'account number': '12345678',
+      'industry': 'Ecomm',
+      'avs billing address': '1307 Broad Hollow Road',
+      'avs billing postal code': '11747',
+      'bill payment indicator': 'Recurring',
     },
   ],
   Sheet2: [
@@ -36,6 +41,11 @@ const TEST_DATA = {
       'trans. currency': '978',
       'transaction amount': '20.00',
       'test case number': 'TEST002',
+      'account number': '123456789',
+      'industry': 'Ecomm',
+      'avs billing address': '1307 Broad Hollow Road',
+      'avs billing postal code': '11747',
+      'bill payment indicator': 'Installment'
     },
   ],
 };
