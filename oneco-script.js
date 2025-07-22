@@ -32,12 +32,20 @@ const OUTPUT_BASE_DIR = process.argv[3] ? `${process.argv[3]}/json` : DEFAULT_OU
 
 // === HEADER -> JSON FIELD MAP ===
 const FIELD_MAP = {
+  'account number': 'account_number',
   'transaction amount': 'transaction_amount',
   'notification email address': 'notification_email_address',
   'ccv data': 'cvv',
   'entry mode': 'entry_mode_id',
-  'avs billing postal code': 'postal_code',
+  'industry': 'industry_type',
   'trans. currency': 'currency_code',
+  'test case number': 'test_case_number',
+  'avs billing address': 'billing_street',
+  'avs billing postal code': 'postal_code',
+  'bill payment indicator': 'bill_payment',
+  'tax indicator': 'sales_tax',
+  'card type': 'card_type',
+  'payment type': 'payment_type',
 };
 
 // === DEFAULTS ===
@@ -78,8 +86,13 @@ function processSheetData(sheetName, rawData, outputBaseDir = OUTPUT_BASE_DIR) {
       if (row_value !== undefined && String(row_value).trim() !== '') {
         if (jsonKey === 'entry_mode_id') {
           jsonOutput[jsonKey] = row_value.trim().charAt(0).toUpperCase();
-        } else if (jsonKey === 'postal_code') {
-          jsonOutput.billing_address = { postal_code: String(row_value).trim() };
+        } else if (jsonKey === 'bill_payment') {
+          jsonOutput.bill_payment = row_value;
+          jsonOutput.bill_payment_indicator = {
+            installment: row_value === 'Installment' ? true : false,
+            installment_number: 1, //default is = 1
+            installment_count: 1
+          };
         } else {
           jsonOutput[jsonKey] = String(row_value).trim();
         }
@@ -102,8 +115,6 @@ function processSheetData(sheetName, rawData, outputBaseDir = OUTPUT_BASE_DIR) {
     } else if (cardType === 'discover') {
       cardType = 'disc';
     }
-
-    jsonOutput.account_number = '{{' + cardType + '_' + row['entry mode']?.toLowerCase() + '}}';
 
     const paymentType = (row['payment type'] || 'unknown').toLowerCase().replace(/\s+/g, '_');
     const transTypeFolder = transactionType || 'unknown';
