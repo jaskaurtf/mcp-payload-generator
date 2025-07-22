@@ -55,6 +55,15 @@ const DEFAULTS = {
   notification_email_address: '',
   account_holder_name: '',
   exp_date: '1226',
+  recurring_flag: 'yes'
+};
+
+// === TYPE NORMALIZATION FOR ADDITIONAL AMOUNTS ===
+const TYPE_NORMALIZER = {
+  hltcare: 'healthcare',
+  rx: 'rx',
+  clinical: 'clinical',
+  dental: 'dental',
 };
 
 // === MAIN FUNCTION ===
@@ -106,13 +115,27 @@ function processSheetData(sheetName, rawData, outputBaseDir = OUTPUT_BASE_DIR) {
     }
     // Set action
     const transactionType = (row['transaction type'] || '').toLowerCase();
-    // === Calculate subtotal_amount from "Additional Amount" column ===
-    const addAmountStr = row['additional amount'] || '';
-    const subtotal = addAmountStr
-      .split(',')
-      .map((val) => parseFloat(val.trim()) || 0)
-      .reduce((sum, val) => sum + val, 0);
-    jsonOutput.subtotal_amount = subtotal.toFixed(2);
+    
+    // Additional Amounts block
+    const amtStr = row['additional amount'] || '';
+    const typeStr = row['additional amount type'] || '';
+    const amountList = amtStr.split(',').map((a) => a.trim());
+    const typeList = typeStr.split(',').map((t) => t.trim().toLowerCase());
+    const additionalAmounts = [];
+    for (let i = 0; i < Math.min(amountList.length, typeList.length); i++) {
+      const amount = amountList[i];
+      const rawType = typeList[i];
+      const normalizedType = TYPE_NORMALIZER[rawType] || rawType;
+      if (normalizedType && amount) {
+        additionalAmounts.push({
+          type: normalizedType,
+          amount,
+        });
+      }
+    }
+    if (additionalAmounts.length > 0) {
+      jsonOutput.additional_amounts = additionalAmounts;
+    }
 
     // Folder structure
     let cardType = (row['card type'] || 'unknown').toLowerCase().replace(/\s+/g, '_');
