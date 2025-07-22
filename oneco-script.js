@@ -44,6 +44,7 @@ const FIELD_MAP = {
   'bill payment indicator': 'bill_payment',
   'card type': 'card_type',
   'payment type': 'payment_type',
+  'ebt type': 'ebt_type'
 };
 
 // === DEFAULTS ===
