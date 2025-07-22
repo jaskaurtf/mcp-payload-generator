@@ -46,8 +46,8 @@ describe('Postman Collection Generation', () => {
             currency_code: '840',
             order_number: 'TEST001',
           },
-          // Place under non-mandatory
-          path: `${TEST_OUTPUT_DIR}/json/non-mandatory/Sheet1/credit/authorization/mc/TEST001.json`,
+          // Place under non-mandatory with new currency-country structure
+          path: `${TEST_OUTPUT_DIR}/json/non-mandatory/Sheet1/USD_UnitedStates_840/credit/authorization/mc/TEST001_USD_UnitedStates_840.json`,
         },
         cof: {
           data: {
@@ -59,8 +59,8 @@ describe('Postman Collection Generation', () => {
             currency_code: '840',
             order_number: 'TEST002',
           },
-          // Place under mandatory
-          path: `${TEST_OUTPUT_DIR}/json/mandatory/Sheet1/credit/authorization/visa/TEST002.json`,
+          // Place under mandatory with new currency-country structure
+          path: `${TEST_OUTPUT_DIR}/json/mandatory/Sheet1/USD_UnitedStates_840/credit/authorization/visa/TEST002_USD_UnitedStates_840.json`,
         },
       },
       Sheet2: {
@@ -73,8 +73,8 @@ describe('Postman Collection Generation', () => {
             currency_code: '978',
             order_number: 'TEST003',
           },
-          // Place under non-mandatory
-          path: `${TEST_OUTPUT_DIR}/json/non-mandatory/Sheet2/credit/refund/amex/TEST003.json`,
+          // Place under non-mandatory with new currency-country structure
+          path: `${TEST_OUTPUT_DIR}/json/non-mandatory/Sheet2/EUR_Europe_978/credit/refund/amex/TEST003_EUR_Europe_978.json`,
         },
       },
     };

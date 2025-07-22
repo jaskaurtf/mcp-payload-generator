@@ -48,12 +48,12 @@ function getTimestampedCollectionPath(groupKey) {
   const ss = String(now.getSeconds()).padStart(2, '0');
   const timestamp = `${yyyy}${mm}${dd}_${hh}${min}${ss}`;
 
-  // Parse groupKey to extract information
-  const [postmanTypeFolder, sheetName, currencyFolder] = groupKey.split('|');
-  const safeType = postmanTypeFolder.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+  // Parse groupKey to extract information including collectionKey
+  const [postmanTypeFolder, sheetName, currencyFolder, collectionKey] = groupKey.split('|');
+  const safeType = (postmanTypeFolder + '_' + collectionKey).replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
   // Build the new name format: CollectionName_ROL021|SheetName|Currency|TransactionType-timestamp
-  const newName = `${collectionName}_ROL021|${sheetName}|${currencyFolder}|${postmanTypeFolder.toUpperCase()}-${timestamp}`;
+  const newName = `${collectionName}_ROL021|${sheetName}|${currencyFolder}|${collectionKey}-${timestamp}`;
 
   return {
     path: `${BASE_DIR}/postman/${collectionName.toLowerCase()}_${safeType}_${timestamp}.json`,
@@ -155,8 +155,8 @@ async function generatePostmanCollectionsByTransactionType() {
   }
 
   for (const [groupKey, requests] of Object.entries(requestsByTypeAndMode)) {
-    // Parse groupKey for output path
-    const [postmanTypeFolder, sheetName, currencyFolder] = groupKey.split('|');
+    // Parse groupKey for output path (now includes collectionKey)
+    const [postmanTypeFolder, sheetName, currencyFolder, collectionKey] = groupKey.split('|');
     const { path: baseCollectionPath, name: collectionName } =
       getTimestampedCollectionPath(groupKey);
     const collectionPath = postmanTypeFolder
