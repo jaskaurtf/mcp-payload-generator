@@ -50,7 +50,9 @@ function getTimestampedCollectionPath(groupKey) {
 
   // Parse groupKey to extract information including collectionKey
   const [postmanTypeFolder, sheetName, currencyFolder, collectionKey] = groupKey.split('|');
-  const safeType = (postmanTypeFolder + '_' + collectionKey).replace(/[^a-z0-9]/gi, '_').toLowerCase();
+  const safeType = (postmanTypeFolder + '_' + collectionKey)
+    .replace(/[^a-z0-9]/gi, '_')
+    .toLowerCase();
 
   // Build the new name format: CollectionName_ROL021|SheetName|Currency|TransactionType-timestamp
   const newName = `${collectionName}_ROL021|${sheetName}|${currencyFolder}|${collectionKey}-${timestamp}`;

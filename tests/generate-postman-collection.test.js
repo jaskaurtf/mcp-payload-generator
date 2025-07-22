@@ -134,7 +134,7 @@ describe('Postman Collection Generation', () => {
 
     // Check request URL reflects requestType=zgate
     expect(firstItem.request.url.raw).toContain('{{url}}');
-    expect(firstItem.request.header.some(h => h.key === 'user-id')).toBe(true);
+    expect(firstItem.request.header.some((h) => h.key === 'user-id')).toBe(true);
   });
 
   test('should include correct test scripts in collection', async () => {

@@ -53,6 +53,8 @@ describe('Excel to JSON Integration', () => {
       recurring: true,
       recurring_number: 1
     });
+    // Verify keyed transaction does NOT have initiation_type
+    expect(sheet1Data).not.toHaveProperty('initiation_type');
 
     // Check if files are created for Sheet2 (now with currency code in path)
     const sheet2Path = path.join(
@@ -82,7 +84,10 @@ describe('Excel to JSON Integration', () => {
       installment_number: 1,
       installment_count: 1,
       recurring: false,
-      recurring_number: 1
+      recurring_number: 1,
+      initiation_type: ''
     });
+    // Verify COF transaction DOES have initiation_type
+    expect(sheet2Data).toHaveProperty('initiation_type', '');
   });
 });

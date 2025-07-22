@@ -37,26 +37,22 @@ const FIELD_MAP = {
   'notification email address': 'notification_email_address',
   'ccv data': 'cvv',
   'entry mode': 'entry_mode_id',
-  'industry': 'industry_type',
+  industry: 'industry_type',
   'trans. currency': 'currency_code',
   'test case number': 'order_number',
   'avs billing address': 'billing_address',
   'bill payment indicator': 'bill_payment',
   'card type': 'card_type',
   'payment type': 'payment_type',
-  'ebt type': 'ebt_type'
+  'ebt type': 'ebt_type',
 };
 
 // === DEFAULTS ===
 const DEFAULTS = {
   location_id: '{{location_id}}',
   product_transaction_id: '{{product_transaction_id_ecommerce}}',
-  initiation_type: '',
-  surcharge_amount: '0',
-  notification_email_address: '',
-  account_holder_name: '',
   exp_date: '1226',
-  recurring_flag: 'yes'
+  recurring_flag: 'yes',
 };
 
 // === TYPE NORMALIZATION FOR ADDITIONAL AMOUNTS ===
@@ -66,6 +62,123 @@ const TYPE_NORMALIZER = {
   clinical: 'clinical',
   dental: 'dental',
 };
+
+// === CARD TYPE MAPPING ===
+const CARD_TYPE_MAP = {
+  mastercard: 'mc',
+  discover: 'disc',
+};
+
+// === UTILITY FUNCTIONS ===
+function normalizeCardType(cardType) {
+  const normalized = (cardType || 'unknown').toLowerCase().replace(/\s+/g, '_');
+  return CARD_TYPE_MAP[normalized] || normalized;
+}
+
+function createBillingAddress(row) {
+  return {
+    city: '',
+    state: '',
+    postal_code: row['avs billing postal code'] || '',
+    phone: '',
+    country: '',
+  };
+}
+
+function handleBillPayment(value) {
+  return {
+    bill_payment: !!value,
+    installment: value === 'Installment',
+    installment_number: 1,
+    installment_count: 1,
+    recurring: value === 'Recurring',
+    recurring_number: 1,
+  };
+}
+
+function parseAdditionalAmounts(amtStr, typeStr) {
+  if (!amtStr || !typeStr) return [];
+
+  const amountList = amtStr.split(',').map((a) => a.trim());
+  const typeList = typeStr.split(',').map((t) => t.trim().toLowerCase());
+
+  const additionalAmounts = [];
+  for (let i = 0; i < Math.min(amountList.length, typeList.length); i++) {
+    const amount = amountList[i];
+    const rawType = typeList[i];
+    const normalizedType = TYPE_NORMALIZER[rawType] || rawType;
+
+    if (normalizedType && amount) {
+      additionalAmounts.push({ type: normalizedType, amount });
+    }
+  }
+
+  return additionalAmounts;
+}
+
+function mapRowToJson(row) {
+  const jsonOutput = { ...DEFAULTS };
+
+  // Map direct fields
+  Object.entries(FIELD_MAP).forEach(([header, jsonKey]) => {
+    const value = row[header];
+    if (value === undefined || String(value).trim() === '') return;
+
+    switch (jsonKey) {
+      case 'entry_mode_id':
+        jsonOutput[jsonKey] = String(value).trim().charAt(0).toUpperCase();
+        break;
+      case 'bill_payment':
+        Object.assign(jsonOutput, handleBillPayment(value));
+        break;
+      case 'billing_address':
+        jsonOutput.billing_address = createBillingAddress(row);
+        break;
+      default:
+        jsonOutput[jsonKey] = String(value).trim();
+    }
+  });
+
+  // Add initiation_type only if entry mode is COF
+  const entryMode = (row['entry mode'] || '').trim().toLowerCase();
+  if (entryMode === 'cof') {
+    jsonOutput.initiation_type = '';
+  }
+
+  // Handle additional amounts
+  const additionalAmounts = parseAdditionalAmounts(
+    row['additional amount'],
+    row['additional amount type']
+  );
+  if (additionalAmounts.length > 0) {
+    jsonOutput.additional_amounts = additionalAmounts;
+  }
+
+  return jsonOutput;
+}
+
+function generateOutputPath(row, sheetName, outputBaseDir) {
+  const cardType = normalizeCardType(row['card type']);
+  const paymentType = (row['payment type'] || 'unknown').toLowerCase().replace(/\s+/g, '_');
+  const transactionType = (row['transaction type'] || 'unknown').toLowerCase();
+  const orderNumber =
+    row['test case number'] || `unknown-${Math.random().toString(36).slice(2, 8)}`;
+  const currencyCode = (row['trans. currency'] || 'unknown').toUpperCase().replace(/\s+/g, '');
+  const currencyWithCountry = getCurrencyWithCountry(currencyCode);
+
+  const outputDir = path.join(
+    outputBaseDir,
+    sheetName,
+    currencyWithCountry,
+    paymentType,
+    transactionType,
+    cardType
+  );
+
+  const outputPath = path.join(outputDir, `${orderNumber}_${currencyWithCountry}.json`);
+
+  return { outputDir, outputPath };
+}
 
 // === MAIN FUNCTION ===
 // Pure function: process a single sheet's data (array of rows)
@@ -86,87 +199,11 @@ function processSheetData(sheetName, rawData, outputBaseDir = OUTPUT_BASE_DIR) {
 
   const outputs = [];
   cleanedData.forEach((row) => {
-    const jsonOutput = { ...DEFAULTS };
-
-    // Map direct fields, only add if value is not empty
-    for (const [header, jsonKey] of Object.entries(FIELD_MAP)) {
-      const row_value = row[header];
-      if (row_value !== undefined && String(row_value).trim() !== '') {
-        if (jsonKey === 'entry_mode_id') {
-          jsonOutput[jsonKey] = row_value.trim().charAt(0).toUpperCase();
-        } else if (jsonKey === 'bill_payment') {
-          jsonOutput.bill_payment = row_value ? true : false;
-          jsonOutput.installment = row_value === 'Installment' ? true : false;
-          jsonOutput.installment_number = 1;
-          jsonOutput.installment_count = 1;
-          jsonOutput.recurring = row_value === 'Recurring' ? true : false;
-          jsonOutput.recurring_number = 1;
-        } else if (jsonKey === 'billing_address') {
-          jsonOutput.billing_address = {
-            'city': '',
-            'state': '',
-            'postal_code': row['avs billing postal code'],
-            'phone': '',
-            'country': ''
-          }
-        } else {
-          jsonOutput[jsonKey] = String(row_value).trim();
-        }
-      }
-    }
-    // Set action
-    const transactionType = (row['transaction type'] || '').toLowerCase();
-    
-    // Additional Amounts block
-    const amtStr = row['additional amount'] || '';
-    const typeStr = row['additional amount type'] || '';
-    const amountList = amtStr.split(',').map((a) => a.trim());
-    const typeList = typeStr.split(',').map((t) => t.trim().toLowerCase());
-    const additionalAmounts = [];
-    for (let i = 0; i < Math.min(amountList.length, typeList.length); i++) {
-      const amount = amountList[i];
-      const rawType = typeList[i];
-      const normalizedType = TYPE_NORMALIZER[rawType] || rawType;
-      if (normalizedType && amount) {
-        additionalAmounts.push({
-          type: normalizedType,
-          amount,
-        });
-      }
-    }
-    if (additionalAmounts.length > 0) {
-      jsonOutput.additional_amounts = additionalAmounts;
-    }
-
-    // Folder structure
-    let cardType = (row['card type'] || 'unknown').toLowerCase().replace(/\s+/g, '_');
-    if (cardType === 'mastercard') {
-      cardType = 'mc';
-    } else if (cardType === 'discover') {
-      cardType = 'disc';
-    }
-
-    const paymentType = (row['payment type'] || 'unknown').toLowerCase().replace(/\s+/g, '_');
-    const transTypeFolder = transactionType || 'unknown';
-    const orderNumber =
-      row['test case number'] || `unknown-${Math.random().toString(36).slice(2, 8)}`;
-    // Group by currency code
-    const currencyCode = (row['trans. currency'] || 'unknown').toUpperCase().replace(/\s+/g, '');
-    // Get currency with country name (e.g., "400" becomes "JOD_Jordan_400")
-    const currencyWithCountry = getCurrencyWithCountry(currencyCode);
-    // Add sheetName and currencyWithCountry to output path
-    const outputDir = path.join(
-      outputBaseDir,
-      sheetName,
-      currencyWithCountry,
-      paymentType,
-      transTypeFolder,
-      cardType
-    );
-    // Include the currency with country information in the filename
-    const outputPath = path.join(outputDir, `${orderNumber}_${currencyWithCountry}.json`);
+    const jsonOutput = mapRowToJson(row);
+    const { outputDir, outputPath } = generateOutputPath(row, sheetName, outputBaseDir);
     outputs.push({ outputDir, outputPath, jsonOutput });
   });
+
   return outputs;
 }
 
@@ -189,4 +226,7 @@ if (require.main === module) {
 module.exports = {
   processExcelFile,
   processSheetData,
+  getCurrencyWithCountry,
+  normalizeCardType,
+  parseAdditionalAmounts,
 };
