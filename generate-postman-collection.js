@@ -38,7 +38,7 @@ const BASE_DIR = process.argv[2] || 'output';
 const OUTPUT_FOLDER = `${BASE_DIR}/json`;
 
 // Generate timestamped filename for a transaction type
-function getTimestampedCollectionPath(transactionType) {
+function getTimestampedCollectionPath(groupKey) {
   const now = new Date();
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -47,10 +47,17 @@ function getTimestampedCollectionPath(transactionType) {
   const min = String(now.getMinutes()).padStart(2, '0');
   const ss = String(now.getSeconds()).padStart(2, '0');
   const timestamp = `${yyyy}${mm}${dd}_${hh}${min}${ss}`;
-  const safeType = transactionType.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+  // Parse groupKey to extract information
+  const [postmanTypeFolder, sheetName, currencyFolder] = groupKey.split('|');
+  const safeType = postmanTypeFolder.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+  // Build the new name format: CollectionName_ROL021|SheetName|Currency|TransactionType-timestamp
+  const newName = `${collectionName}_ROL021|${sheetName}|${currencyFolder}|${postmanTypeFolder.toUpperCase()}-${timestamp}`;
+
   return {
     path: `${BASE_DIR}/postman/${collectionName.toLowerCase()}_${safeType}_${timestamp}.json`,
-    name: `Automated ${collectionName} Rapid Connect ${transactionType} - ${timestamp}`,
+    name: newName,
   };
 }
 

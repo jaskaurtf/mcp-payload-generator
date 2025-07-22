@@ -51,7 +51,7 @@ const FIELD_MAP = {
 // === DEFAULTS ===
 const DEFAULTS = {
   location_id: '{{location_id}}',
-  product_transaction_id: '{{product_transaction_id_ecommerce_surcharge}}',
+  product_transaction_id: '{{product_transaction_id_ecommerce}}',
   initiation_type: '',
   surcharge_amount: '0',
   notification_email_address: '',
