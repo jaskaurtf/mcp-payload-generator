@@ -37,7 +37,7 @@ const FIELD_MAP = {
   'notification email address': 'notification_email_address',
   'ccv data': 'cvv',
   'entry mode': 'entry_mode_id',
-  industry: 'industry_type',
+  'industry': 'industry_type',
   'trans. currency': 'currency_code',
   'test case number': 'order_number',
   'avs billing address': 'billing_address',
@@ -52,7 +52,6 @@ const DEFAULTS = {
   location_id: '{{location_id}}',
   product_transaction_id: '{{product_transaction_id_ecommerce}}',
   exp_date: '1226',
-  recurring_flag: 'yes',
 };
 
 // === TYPE NORMALIZATION FOR ADDITIONAL AMOUNTS ===
