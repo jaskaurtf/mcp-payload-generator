@@ -17,6 +17,20 @@ const CURRENCY_COUNTRY_MAP = {
   826: 'GBP_UnitedKingdom_826',
 };
 
+const CURRENCY_COUNTRY_NAME_MAP = {
+  '036': 'Australia',
+  124: 'Canada',
+  344: 'HongKong',
+  392: 'Japan',
+  400: 'Jordan',
+  554: 'NewZealand',
+  702: 'Singapore',
+  764: 'Thailand',
+  840: 'United States',
+  978: 'Europe',
+  826: 'United Kingdom',
+};
+
 // Function to get currency with country name
 function getCurrencyWithCountry(currencyCode) {
   return CURRENCY_COUNTRY_MAP[currencyCode] || currencyCode;
@@ -76,7 +90,7 @@ function createBillingAddress(row) {
     state: '',
     postal_code: row['avs billing postal code'] || '',
     phone: '',
-    country: '',
+    country: CURRENCY_COUNTRY_NAME_MAP[row['trans. currency']],
     street: row['avs billing address'] || '',
   };
 }
