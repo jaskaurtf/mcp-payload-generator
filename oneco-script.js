@@ -77,6 +77,7 @@ function createBillingAddress(row) {
     postal_code: row['avs billing postal code'] || '',
     phone: '',
     country: '',
+    street: row['avs billing address'] || '',
   };
 }
 
