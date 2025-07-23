@@ -3,37 +3,30 @@ const fs = require('fs-extra');
 const path = require('path');
 
 // === CURRENCY CODE TO COUNTRY MAPPING ===
-const CURRENCY_COUNTRY_MAP = {
-  '036': 'AUD_Australia_036',
-  124: 'CAD_Canada_124',
-  344: 'HKD_HongKong_344',
-  392: 'JPY_Japan_392',
-  400: 'JOD_Jordan_400',
-  554: 'NZD_NewZealand_554',
-  702: 'SGD_Singapore_702',
-  764: 'THB_Thailand_764',
-  840: 'USD_UnitedStates_840',
-  978: 'EUR_Europe_978',
-  826: 'GBP_UnitedKingdom_826',
-};
-
-const CURRENCY_COUNTRY_NAME_MAP = {
-  '036': 'Australia',
-  124: 'Canada',
-  344: 'HongKong',
-  392: 'Japan',
-  400: 'Jordan',
-  554: 'NewZealand',
-  702: 'Singapore',
-  764: 'Thailand',
-  840: 'United States',
-  978: 'Europe',
-  826: 'United Kingdom',
+const CURRENCY_MAP = {
+  '036': { name: 'Australia', code: 'AUD', fullCode: 'AUD_Australia_036' },
+  124: { name: 'Canada', code: 'CAD', fullCode: 'CAD_Canada_124' },
+  344: { name: 'HongKong', code: 'HKD', fullCode: 'HKD_HongKong_344' },
+  392: { name: 'Japan', code: 'JPY', fullCode: 'JPY_Japan_392' },
+  400: { name: 'Jordan', code: 'JOD', fullCode: 'JOD_Jordan_400' },
+  554: { name: 'NewZealand', code: 'NZD', fullCode: 'NZD_NewZealand_554' },
+  702: { name: 'Singapore', code: 'SGD', fullCode: 'SGD_Singapore_702' },
+  764: { name: 'Thailand', code: 'THB', fullCode: 'THB_Thailand_764' },
+  840: { name: 'United States', code: 'USD', fullCode: 'USD_UnitedStates_840' },
+  978: { name: 'Europe', code: 'EUR', fullCode: 'EUR_Europe_978' },
+  826: { name: 'United Kingdom', code: 'GBP', fullCode: 'GBP_UnitedKingdom_826' },
 };
 
 // Function to get currency with country name
 function getCurrencyWithCountry(currencyCode) {
-  return CURRENCY_COUNTRY_MAP[currencyCode] || currencyCode;
+  const currency = CURRENCY_MAP[currencyCode];
+  return currency ? currency.fullCode : currencyCode;
+}
+
+// Function to get currency abbreviation
+function getCurrencyCode(currencyCode) {
+  const currency = CURRENCY_MAP[currencyCode];
+  return currency ? currency.code : currencyCode;
 }
 
 // === CONFIGURATION ===
@@ -85,12 +78,14 @@ function normalizeCardType(cardType) {
 }
 
 function createBillingAddress(row) {
+  const currencyCode = row['trans. currency'];
+  const currency = CURRENCY_MAP[currencyCode];
   return {
     city: '',
     state: '',
     postal_code: row['avs billing postal code'] || '',
     phone: '',
-    country: CURRENCY_COUNTRY_NAME_MAP[row['trans. currency']],
+    country: currency ? currency.name : '',
     street: row['avs billing address'] || '',
   };
 }
@@ -145,6 +140,10 @@ function mapRowToJson(row) {
         // Convert decimal amount to cents (remove decimal point)
         const amount = parseFloat(value) || 0;
         jsonOutput[jsonKey] = String(Math.round(amount * 100));
+        break;
+      case 'currency_code':
+        // Convert numeric currency code to currency abbreviation
+        jsonOutput[jsonKey] = getCurrencyCode(String(value).trim());
         break;
       case 'bill_payment':
         Object.assign(jsonOutput, handleBillPayment(value));
@@ -245,6 +244,7 @@ module.exports = {
   processExcelFile,
   processSheetData,
   getCurrencyWithCountry,
+  getCurrencyCode,
   normalizeCardType,
   parseAdditionalAmounts,
 };

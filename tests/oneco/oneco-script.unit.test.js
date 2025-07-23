@@ -41,12 +41,12 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
     expect(outputs[0].jsonOutput).toMatchObject({
       transaction_amount: '1000',
       entry_mode_id: 'K',
-      currency_code: '840',
+      currency_code: 'USD',
       order_number: 'TEST001',
       account_number: '12345678',
       billing_address: {
         city: '',
-        country: '',
+        country: 'United States',
         phone: '',
         postal_code: '11747',
         state: '',
@@ -65,12 +65,12 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
     expect(outputs[1].jsonOutput).toMatchObject({
       transaction_amount: '2000',
       entry_mode_id: 'C',
-      currency_code: '978',
+      currency_code: 'EUR',
       order_number: 'TEST002',
       account_number: '123456789',
       billing_address: {
         city: '',
-        country: '',
+        country: 'Europe',
         phone: '',
         postal_code: '11747',
         state: '',
