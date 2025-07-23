@@ -123,12 +123,12 @@ async function generatePostmanCollectionsByTransactionType() {
     uniqueCurrencyCodes.add(currencyCode);
     let collectionKey = '';
     if ((cofType !== '' && cofType !== '0' && cofType !== 'false') || entryMode === 'c') {
-      collectionKey = `COF_${transactionType}_CUR_${currencyWithCountry}`;
+      collectionKey = `COF_${transactionType}`;
     } else if (entryMode === 'keyed' || entryMode === 'k') {
-      collectionKey = `KEYED_${transactionType}_CUR_${currencyWithCountry}`;
+      collectionKey = `KEYED_${transactionType}`;
     } else {
       const entryModeKey = entryMode ? entryMode.toUpperCase().replace(/\s+/g, '') : 'OTHER';
-      collectionKey = `${entryModeKey}_${transactionType}_CUR_${currencyWithCountry}`;
+      collectionKey = `${entryModeKey}_${transactionType}`;
     }
     // Group by postmanTypeFolder|sheetName|currencyWithCountry|collectionKey
     const groupKey = `${postmanTypeFolder}|${sheetName}|${currencyWithCountry}|${collectionKey}`;

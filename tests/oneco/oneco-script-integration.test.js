@@ -40,18 +40,18 @@ describe('Excel to JSON Integration', () => {
       account_number: '12345678',
       industry_type: 'Ecomm',
       billing_address: {
-        "city": "",
-        "country": "",
-        "phone": "",
-        "postal_code": "11747",
-        "state": "",
+        city: '',
+        country: '',
+        phone: '',
+        postal_code: '11747',
+        state: '',
       },
       bill_payment: true,
       installment: false,
       installment_number: 1,
       installment_count: 1,
       recurring: true,
-      recurring_number: 1
+      recurring_number: 1,
     });
     // Verify keyed transaction does NOT have initiation_type
     expect(sheet1Data).not.toHaveProperty('initiation_type');
@@ -73,11 +73,11 @@ describe('Excel to JSON Integration', () => {
       account_number: '123456789',
       industry_type: 'Ecomm',
       billing_address: {
-        "city": "",
-        "country": "",
-        "phone": "",
-        "postal_code": "11747",
-        "state": "",
+        city: '',
+        country: '',
+        phone: '',
+        postal_code: '11747',
+        state: '',
       },
       bill_payment: true,
       installment: true,
@@ -85,7 +85,7 @@ describe('Excel to JSON Integration', () => {
       installment_count: 1,
       recurring: false,
       recurring_number: 1,
-      initiation_type: ''
+      initiation_type: '',
     });
     // Verify COF transaction DOES have initiation_type
     expect(sheet2Data).toHaveProperty('initiation_type', '');

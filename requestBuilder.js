@@ -10,8 +10,7 @@ function buildRequest(type, jsonBody) {
         ],
         body: { mode: 'raw', raw: jsonBody },
         url: {
-          raw: 'https://{{url}}/{{namespace}}/transactions',
-          protocol: 'https',
+          raw: '{{url}}/{{namespace}}/transactions',
           host: ['{{url}}'],
           path: ['{{namespace}}', 'transactions'],
         },
@@ -30,8 +29,7 @@ function buildRequest(type, jsonBody) {
         ],
         body: { mode: 'raw', raw: jsonBody },
         url: {
-          raw: 'https://{{url}}/{{namespace}}/transactions/cc/sale/keyed',
-          protocol: 'https',
+          raw: '{{url}}/{{namespace}}/transactions/cc/sale/keyed',
           host: ['{{url}}'],
           path: ['{{namespace}}', 'transactions/cc/sale/keyed'],
         },
