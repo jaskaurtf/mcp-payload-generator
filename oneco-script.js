@@ -39,7 +39,7 @@ const FIELD_MAP = {
   'entry mode': 'entry_mode_id',
   'trans. currency': 'currency_code',
   'test case number': 'order_number',
-  'avs billing address': 'billing_address',
+  'avs billing postal code': 'postal_code',
   'bill payment indicator': 'bill_payment',
 };
 
@@ -134,7 +134,7 @@ function mapRowToJson(row) {
       case 'bill_payment':
         Object.assign(jsonOutput, handleBillPayment(value));
         break;
-      case 'billing_address':
+      case 'postal_code':
         jsonOutput.billing_address = createBillingAddress(row);
         break;
       default:
