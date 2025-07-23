@@ -39,7 +39,7 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
     expect(outputs.length).toBe(2);
     // Check first output (keyed transaction - should NOT have initiation_type)
     expect(outputs[0].jsonOutput).toMatchObject({
-      transaction_amount: '10.00',
+      transaction_amount: '1000',
       entry_mode_id: 'K',
       currency_code: '840',
       order_number: 'TEST001',
@@ -63,7 +63,7 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
 
     // Check second output (COF transaction - should HAVE initiation_type)
     expect(outputs[1].jsonOutput).toMatchObject({
-      transaction_amount: '20.00',
+      transaction_amount: '2000',
       entry_mode_id: 'C',
       currency_code: '978',
       order_number: 'TEST002',

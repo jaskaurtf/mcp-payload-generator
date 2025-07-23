@@ -31,7 +31,7 @@ describe('Excel to JSON Integration', () => {
     expect(fs.existsSync(sheet1Path)).toBeTruthy();
     const sheet1Data = await fs.readJson(sheet1Path);
     expect(sheet1Data).toMatchObject({
-      transaction_amount: '10.00',
+      transaction_amount: '1000',
       entry_mode_id: 'K',
       currency_code: '840',
       order_number: 'TEST001',
@@ -61,7 +61,7 @@ describe('Excel to JSON Integration', () => {
     expect(fs.existsSync(sheet2Path)).toBeTruthy();
     const sheet2Data = await fs.readJson(sheet2Path);
     expect(sheet2Data).toMatchObject({
-      transaction_amount: '20.00',
+      transaction_amount: '2000',
       entry_mode_id: 'C',
       currency_code: '978',
       order_number: 'TEST002_COF',

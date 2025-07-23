@@ -40,7 +40,7 @@ const FIELD_MAP = {
   'trans. currency': 'currency_code',
   'test case number': 'order_number',
   'avs billing address': 'billing_address',
-  'bill payment indicator': 'bill_payment'
+  'bill payment indicator': 'bill_payment',
 };
 
 // === DEFAULTS ===
@@ -99,12 +99,15 @@ function parseAdditionalAmounts(amtStr, typeStr) {
 
   const additionalAmounts = [];
   for (let i = 0; i < Math.min(amountList.length, typeList.length); i++) {
-    const amount = amountList[i];
+    const amountStr = amountList[i];
     const rawType = typeList[i];
     const normalizedType = TYPE_NORMALIZER[rawType] || rawType;
 
-    if (normalizedType && amount) {
-      additionalAmounts.push({ type: normalizedType, amount });
+    if (normalizedType && amountStr) {
+      // Convert decimal amount to cents (remove decimal point)
+      const amount = parseFloat(amountStr) || 0;
+      const convertedAmount = String(Math.round(amount * 100));
+      additionalAmounts.push({ type: normalizedType, amount: convertedAmount });
     }
   }
 
@@ -122,6 +125,11 @@ function mapRowToJson(row) {
     switch (jsonKey) {
       case 'entry_mode_id':
         jsonOutput[jsonKey] = String(value).trim().charAt(0).toUpperCase();
+        break;
+      case 'transaction_amount':
+        // Convert decimal amount to cents (remove decimal point)
+        const amount = parseFloat(value) || 0;
+        jsonOutput[jsonKey] = String(Math.round(amount * 100));
         break;
       case 'bill_payment':
         Object.assign(jsonOutput, handleBillPayment(value));
