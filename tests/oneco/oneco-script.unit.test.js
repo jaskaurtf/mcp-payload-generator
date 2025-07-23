@@ -42,11 +42,8 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
       transaction_amount: '10.00',
       entry_mode_id: 'K',
       currency_code: '840',
-      card_type: 'mastercard',
-      payment_type: 'credit',
       order_number: 'TEST001',
       account_number: '12345678',
-      industry_type: 'Ecomm',
       billing_address: {
         city: '',
         country: '',
@@ -69,11 +66,8 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
       transaction_amount: '20.00',
       entry_mode_id: 'C',
       currency_code: '978',
-      card_type: 'visa',
-      payment_type: 'credit',
       order_number: 'TEST002',
       account_number: '123456789',
-      industry_type: 'Ecomm',
       billing_address: {
         city: '',
         country: '',

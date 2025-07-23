@@ -37,14 +37,10 @@ const FIELD_MAP = {
   'notification email address': 'notification_email_address',
   'ccv data': 'cvv',
   'entry mode': 'entry_mode_id',
-  'industry': 'industry_type',
   'trans. currency': 'currency_code',
   'test case number': 'order_number',
   'avs billing address': 'billing_address',
-  'bill payment indicator': 'bill_payment',
-  'card type': 'card_type',
-  'payment type': 'payment_type',
-  'ebt type': 'ebt_type',
+  'bill payment indicator': 'bill_payment'
 };
 
 // === DEFAULTS ===
