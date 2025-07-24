@@ -19,9 +19,29 @@ const CURRENCY_COUNTRY_MAP = {
   826: 'GBP_UnitedKingdom_826',
 };
 
+// === Currency abbreviation to country mapping ===
+const CURRENCY_ABBREV_MAP = {
+  AUD: 'AUD_Australia_036',
+  CAD: 'CAD_Canada_124',
+  HKD: 'HKD_HongKong_344',
+  JPY: 'JPY_Japan_392',
+  JOD: 'JOD_Jordan_400',
+  NZD: 'NZD_NewZealand_554',
+  SGD: 'SGD_Singapore_702',
+  THB: 'THB_Thailand_764',
+  USD: 'USD_UnitedStates_840',
+  EUR: 'EUR_Europe_978',
+  GBP: 'GBP_UnitedKingdom_826',
+};
+
 // Function to get currency with country name
 function getCurrencyWithCountry(currencyCode) {
-  return CURRENCY_COUNTRY_MAP[currencyCode] || `${currencyCode}_Unknown`;
+  // Try numeric code first, then abbreviation
+  return (
+    CURRENCY_COUNTRY_MAP[currencyCode] ||
+    CURRENCY_ABBREV_MAP[currencyCode] ||
+    `${currencyCode}_Unknown`
+  );
 }
 
 // === Get command line args requestType ===
