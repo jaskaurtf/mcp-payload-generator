@@ -16,6 +16,8 @@ const mockData = [
     'avs billing address': '1307 Broad Hollow Road',
     'avs billing postal code': '11747',
     'bill payment indicator': 'Recurring',
+    'additional amount': '24.00',
+    'additional amount type': 'Clinical',
   },
   {
     'transaction type': 'refund',
@@ -30,6 +32,8 @@ const mockData = [
     'avs billing address': '1307 Broad Hollow Road',
     'avs billing postal code': '11747',
     'bill payment indicator': 'Installment',
+    'additional amount': '',
+    'additional amount type': '',
   },
 ];
 
@@ -50,6 +54,7 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
         phone: '',
         postal_code: '11747',
         state: '',
+        street: '1307 Broad Hollow Road',
       },
       bill_payment: true,
       installment: false,
@@ -57,6 +62,12 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
       installment_count: 1,
       recurring: true,
       recurring_number: 1,
+      additional_amounts: [
+        {
+          "type": "clinical",
+          "amount": "2400"
+        }
+      ]
     });
     // Verify keyed transaction does NOT have initiation_type
     expect(outputs[0].jsonOutput).not.toHaveProperty('initiation_type');
@@ -74,6 +85,7 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
         phone: '',
         postal_code: '11747',
         state: '',
+        street: '1307 Broad Hollow Road',
       },
       bill_payment: true,
       installment: true,
