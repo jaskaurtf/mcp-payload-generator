@@ -171,6 +171,17 @@ function mapRowToJson(row) {
     jsonOutput.additional_amounts = additionalAmounts;
   }
 
+  // Add secure_auth_data if description contains "Secure Electronic Commerce transaction."
+  // Add threedsecure and secure_auth_data if description contains "3-D Secure transaction"
+  const description = (row['description'] || '').toString().trim();
+  if (description.includes('Secure Electronic Commerce transaction.')) {
+    jsonOutput.secure_auth_data = 'hpqlETCoVYR1CAAAiX8HBjAAAAA=';
+  }
+  if (description.includes('3-D Secure transaction')) {
+    jsonOutput.threedsecure = '1';
+    jsonOutput.secure_auth_data = 'hpqlETCoVYR1CAAAiX8HBjAAAAA=';
+  }
+
   return jsonOutput;
 }
 

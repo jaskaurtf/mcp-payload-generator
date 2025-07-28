@@ -36,6 +36,8 @@ describe('Excel to JSON Integration', () => {
       currency_code: 'USD',
       order_number: 'TEST001',
       account_number: '12345678',
+      description: 'Secure Electronic Commerce transaction. Send XML tag with value 01.',
+      secure_auth_data: 'hpqlETCoVYR1CAAAiX8HBjAAAAA=',
       billing_address: {
         city: '',
         country: 'United States',
@@ -53,6 +55,9 @@ describe('Excel to JSON Integration', () => {
     });
     // Verify keyed transaction does NOT have initiation_type
     expect(sheet1Data).not.toHaveProperty('initiation_type');
+    // Verify it has secure_auth_data but not threedsecure
+    expect(sheet1Data).toHaveProperty('secure_auth_data', 'hpqlETCoVYR1CAAAiX8HBjAAAAA=');
+    expect(sheet1Data).not.toHaveProperty('threedsecure');
 
     // Check if files are created for Sheet2 (now with currency code in path)
     const sheet2Path = path.join(
@@ -67,6 +72,9 @@ describe('Excel to JSON Integration', () => {
       currency_code: 'EUR',
       order_number: 'TEST002_COF',
       account_number: '123456789',
+      description: '3-D Secure transaction for authentication. Send XML tag with value 02.',
+      threedsecure: '1',
+      secure_auth_data: 'hpqlETCoVYR1CAAAiX8HBjAAAAA=',
       billing_address: {
         city: '',
         country: 'Europe',
@@ -85,5 +93,8 @@ describe('Excel to JSON Integration', () => {
     });
     // Verify COF transaction DOES have initiation_type
     expect(sheet2Data).toHaveProperty('initiation_type', '');
+    // Verify it has both threedsecure and secure_auth_data
+    expect(sheet2Data).toHaveProperty('threedsecure', '1');
+    expect(sheet2Data).toHaveProperty('secure_auth_data', 'hpqlETCoVYR1CAAAiX8HBjAAAAA=');
   });
 });

@@ -87,7 +87,7 @@ const TEST_SCRIPT = [
   'let response = pm.response.json();',
   '',
   "pm.test(`Transaction status must be 'approved'`, function () {",
-  '    pm.expect(response.verbiage.toLowerCase()).to.eql("approval");',
+  '    pm.expect(response?.data?.verbiage?.toLowerCase()).to.eql("approval");',
   '});',
 ];
 
