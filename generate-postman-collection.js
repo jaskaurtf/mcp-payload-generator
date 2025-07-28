@@ -87,7 +87,7 @@ const TEST_SCRIPT = [
   'let response = pm.response.json();',
   '',
   "pm.test(`Transaction status must be 'approved'`, function () {",
-  '    pm.expect(response.status.toLowerCase()).to.eql("approved");',
+  '    pm.expect(response.verbiage.toLowerCase()).to.eql("approval");',
   '});',
 ];
 
@@ -156,7 +156,8 @@ async function generatePostmanCollectionsByTransactionType() {
       requestsByTypeAndMode[groupKey] = [];
     }
     // Create a descriptive name for the Postman request
-    const name = `${transactionType} - ${cardType} - ${entryMode.toUpperCase()} - ${currencyWithCountry} - ${orderNumber}`;
+    const transactionAmount = data.transaction_amount || data.amount || '';
+    const name = `${transactionType} - ${cardType} - ${entryMode.toUpperCase()} - ${currencyWithCountry} - ${transactionAmount} - ${orderNumber}`;
     const postmanRequest = {
       name,
       event: [
