@@ -100,14 +100,43 @@ function generateTestScript(orderNumber) {
   ];
 }
 
+// Function to read JSON with commented description field
+function readJsonWithCommentedDescription(filePath) {
+  let fileContent = fs.readFileSync(filePath, 'utf8');
+
+  // Extract commented description before parsing JSON
+  let description = '';
+  const commentedDescriptionMatch = fileContent.match(
+    /\s*\/\/ "description": ("(?:[^"\\]|\\.)*")\s*\n}/
+  );
+  if (commentedDescriptionMatch) {
+    description = JSON.parse(commentedDescriptionMatch[1]);
+    // Remove the comment line to make it valid JSON
+    fileContent = fileContent.replace(/\s*\/\/ "description": "(?:[^"\\]|\\.)*"\s*\n}/, '\n}');
+  }
+
+  const data = JSON.parse(fileContent);
+  if (description) {
+    data.description = description;
+  }
+
+  return data;
+}
+
 async function generatePostmanCollectionsByTransactionType() {
   const files = glob.sync(`${OUTPUT_FOLDER}/**/*.json`);
   const requestsByTypeAndMode = {};
   const uniqueCurrencyCodes = new Set();
 
   for (const file of files) {
-    const data = await fs.readJson(file);
-    const jsonBody = JSON.stringify(data, null, 2);
+    const data = readJsonWithCommentedDescription(file);
+
+    // Extract description for use in building request but remove it from the JSON body
+    const extractedDescription = data.description || '';
+    const dataForPostman = { ...data };
+    delete dataForPostman.description;
+    const jsonBody = JSON.stringify(dataForPostman, null, 2);
+
     const pathParts = file.split(path.sep);
     const pathLength = pathParts.length;
     // Robustly extract sheet name and currency code from file path (folders under 'json')
@@ -166,7 +195,7 @@ async function generatePostmanCollectionsByTransactionType() {
     }
     // Create a descriptive name for the Postman request
     const transactionAmount = data.transaction_amount || data.amount || '';
-    const description = data.description || '';
+    const description = extractedDescription;
     const name = `${transactionType} - ${cardType} - ${entryMode.toUpperCase()} - ${currencyWithCountry} - ${transactionAmount} - ${orderNumber}`;
     const postmanRequest = {
       name,
@@ -179,7 +208,7 @@ async function generatePostmanCollectionsByTransactionType() {
           },
         },
       ],
-      request: buildRequest(requestType, jsonBody, description),
+      request: buildRequest(requestType, jsonBody, description, orderNumber),
       response: [],
       sheetName: sheetName.toUpperCase(),
       postmanTypeFolder, // Store type for output path
@@ -188,6 +217,19 @@ async function generatePostmanCollectionsByTransactionType() {
   }
 
   for (const [groupKey, requests] of Object.entries(requestsByTypeAndMode)) {
+    // Sort requests: POST transactions first, then PUT transactions
+    requests.sort((a, b) => {
+      const methodA = a.request.method;
+      const methodB = b.request.method;
+
+      // POST comes before PUT
+      if (methodA === 'POST' && methodB === 'PUT') return -1;
+      if (methodA === 'PUT' && methodB === 'POST') return 1;
+
+      // If same method, maintain original order (stable sort)
+      return 0;
+    });
+
     // Parse groupKey for output path (now includes collectionKey)
     const [postmanTypeFolder, sheetName, currencyFolder, collectionKey] = groupKey.split('|');
     const { path: baseCollectionPath, name: collectionName } =

@@ -1,9 +1,26 @@
-function buildRequest(type, jsonBody, description = '') {
+function buildRequest(type, jsonBody, description = '', orderNumber = '') {
   // Determine HTTP method based on description
   const method = description.toLowerCase().includes('void') ? 'PUT' : 'POST';
-  
+
+  // Calculate dynamic value for PUT requests (order_number - 1) as a placeholder
+  const dynamicValue =
+    method === 'PUT' && orderNumber
+      ? `{{${String(Number(orderNumber) - 1)}}}`
+      : method === 'PUT'
+        ? '{{dynamicValue}}'
+        : '';
+
   switch (type) {
     case 'zgate':
+      const zgateUrl =
+        method === 'PUT'
+          ? `{{url}}/{{namespace}}/transactions/${dynamicValue}/void`
+          : '{{url}}/{{namespace}}/transactions';
+      const zgatePath =
+        method === 'PUT'
+          ? ['{{namespace}}', 'transactions', dynamicValue, 'void']
+          : ['{{namespace}}', 'transactions'];
+
       return {
         method: method,
         header: [
@@ -13,13 +30,22 @@ function buildRequest(type, jsonBody, description = '') {
         ],
         body: { mode: 'raw', raw: jsonBody },
         url: {
-          raw: '{{url}}/{{namespace}}/transactions',
+          raw: zgateUrl,
           host: ['{{url}}'],
-          path: ['{{namespace}}', 'transactions'],
+          path: zgatePath,
         },
       };
 
     case 'oneCo':
+      const oneCoUrl =
+        method === 'PUT'
+          ? `{{url}}/{{namespace}}/transactions/${dynamicValue}/void`
+          : '{{url}}/{{namespace}}/transactions/cc/sale/keyed';
+      const oneCoPath =
+        method === 'PUT'
+          ? ['{{namespace}}', 'transactions', dynamicValue, 'void']
+          : ['{{namespace}}', 'transactions/cc/sale/keyed'];
+
       return {
         method: method,
         header: [
@@ -32,9 +58,9 @@ function buildRequest(type, jsonBody, description = '') {
         ],
         body: { mode: 'raw', raw: jsonBody },
         url: {
-          raw: '{{url}}/{{namespace}}/transactions/cc/sale/keyed',
+          raw: oneCoUrl,
           host: ['{{url}}'],
-          path: ['{{namespace}}', 'transactions/cc/sale/keyed'],
+          path: oneCoPath,
         },
       };
 

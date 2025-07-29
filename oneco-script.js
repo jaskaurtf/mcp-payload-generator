@@ -48,7 +48,7 @@ const FIELD_MAP = {
   'test case number': 'order_number',
   'avs billing postal code': 'postal_code',
   'bill payment indicator': 'bill_payment',
-  'description': 'description',
+  description: 'description',
 };
 
 // === DEFAULTS ===
@@ -97,10 +97,10 @@ function handleBillPayment(value) {
     installment: value === 'Installment' || undefined,
     installment_number: value === 'Installment' ? 1 : undefined,
     installment_count: value === 'Installment' ? 1 : undefined,
-    installment_counter: (['Recurring', 'Installment'].includes(value)) ? 1 : undefined,
+    installment_counter: ['Recurring', 'Installment'].includes(value) ? 1 : undefined,
     installment_total: value === 'Installment' ? 1 : undefined,
     deferred_auth: value === 'Deferred' || undefined,
-    recurring_flag: (['Recurring', 'Installment'].includes(value)) ? 'yes' : undefined
+    recurring_flag: ['Recurring', 'Installment'].includes(value) ? 'yes' : undefined,
   };
 }
 
@@ -153,6 +153,9 @@ function mapRowToJson(row) {
         break;
       case 'postal_code':
         jsonOutput.billing_address = createBillingAddress(row);
+        break;
+      case 'description':
+        // Skip adding description to JSON output - it will be added as a comment
         break;
       default:
         jsonOutput[jsonKey] = String(value).trim();
@@ -232,10 +235,25 @@ function processSheetData(sheetName, rawData, outputBaseDir = OUTPUT_BASE_DIR) {
   cleanedData.forEach((row) => {
     const jsonOutput = mapRowToJson(row);
     const { outputDir, outputPath } = generateOutputPath(row, sheetName, outputBaseDir);
-    outputs.push({ outputDir, outputPath, jsonOutput });
+    const description = (row['description'] || '').toString().trim();
+    outputs.push({ outputDir, outputPath, jsonOutput, description });
   });
 
   return outputs;
+}
+
+// Function to write JSON with commented description field
+function writeJsonWithCommentedDescription(filePath, jsonData, description = '') {
+  let jsonString = JSON.stringify(jsonData, null, 2);
+
+  // If there's a description, add it as a comment at the end before the closing brace
+  if (description) {
+    const closingBrace = '\n}';
+    const commentLine = `  // "description": ${JSON.stringify(description)}${closingBrace}`;
+    jsonString = jsonString.replace(closingBrace, '\n' + commentLine);
+  }
+
+  fs.writeFileSync(filePath, jsonString);
 }
 
 function processExcelFile(filePath = EXCEL_FILE_PATH, outputBaseDir = OUTPUT_BASE_DIR) {
@@ -243,9 +261,9 @@ function processExcelFile(filePath = EXCEL_FILE_PATH, outputBaseDir = OUTPUT_BAS
   workbook.SheetNames.forEach((sheetName) => {
     const rawData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
     const outputs = processSheetData(sheetName, rawData, outputBaseDir);
-    outputs.forEach(({ outputDir, outputPath, jsonOutput }) => {
+    outputs.forEach(({ outputDir, outputPath, jsonOutput, description }) => {
       fs.ensureDirSync(outputDir);
-      fs.writeJsonSync(outputPath, jsonOutput, { spaces: 2 });
+      writeJsonWithCommentedDescription(outputPath, jsonOutput, description);
     });
   });
 }
@@ -261,4 +279,26 @@ module.exports = {
   getCurrencyCode,
   normalizeCardType,
   parseAdditionalAmounts,
+  writeJsonWithCommentedDescription,
+  readJsonWithCommentedDescription: (filePath) => {
+    let fileContent = fs.readFileSync(filePath, 'utf8');
+
+    // Extract commented description before parsing JSON
+    let description = '';
+    const commentedDescriptionMatch = fileContent.match(
+      /\s*\/\/ "description": ("(?:[^"\\]|\\.)*")\s*\n}/
+    );
+    if (commentedDescriptionMatch) {
+      description = JSON.parse(commentedDescriptionMatch[1]);
+      // Remove the comment line to make it valid JSON
+      fileContent = fileContent.replace(/\s*\/\/ "description": "(?:[^"\\]|\\.)*"\s*\n}/, '\n}');
+    }
+
+    const data = JSON.parse(fileContent);
+    if (description) {
+      data.description = description;
+    }
+
+    return data;
+  },
 };
