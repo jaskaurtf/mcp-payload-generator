@@ -48,6 +48,7 @@ const FIELD_MAP = {
   'test case number': 'order_number',
   'avs billing postal code': 'postal_code',
   'bill payment indicator': 'bill_payment',
+  'description': 'description',
 };
 
 // === DEFAULTS ===

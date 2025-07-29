@@ -194,6 +194,16 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
         'payment type': 'credit',
         'transaction type': 'authorization',
       },
+      {
+        'test case number': 'VOID001',
+        description: 'This is a void transaction for testing PUT method',
+        'trans. currency': '840',
+        'transaction amount': '45.00',
+        'entry mode': 'keyed',
+        'card type': 'visa',
+        'payment type': 'credit',
+        'transaction type': 'void',
+      },
     ];
 
     const outputs = processSheetData('TestSheet', testData, 'test-output');

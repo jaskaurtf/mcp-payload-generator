@@ -83,13 +83,22 @@ function getTimestampedCollectionPath(groupKey) {
   };
 }
 
-const TEST_SCRIPT = [
-  'let response = pm.response.json();',
-  '',
-  "pm.test(`Transaction status must be 'approved'`, function () {",
-  '    pm.expect(response?.data?.verbiage?.toLowerCase()).to.eql("approval");',
-  '});',
-];
+// Function to generate dynamic TEST_SCRIPT for each request
+function generateTestScript(orderNumber) {
+  return [
+    'let response = pm.response.json();',
+    'let responseCode = pm.response;',
+    '',
+    'if (responseCode.code === 201) {',
+    '    var resp = JSON.parse(responseBody);',
+    `    postman.setGlobalVariable("${orderNumber}", resp.data.id);`,
+    '}',
+    '',
+    "pm.test(`Transaction status must be 'approved'`, function () {",
+    '    pm.expect(response?.data?.verbiage?.toLowerCase()).to.eql("approval");',
+    '});',
+  ];
+}
 
 async function generatePostmanCollectionsByTransactionType() {
   const files = glob.sync(`${OUTPUT_FOLDER}/**/*.json`);
@@ -157,6 +166,7 @@ async function generatePostmanCollectionsByTransactionType() {
     }
     // Create a descriptive name for the Postman request
     const transactionAmount = data.transaction_amount || data.amount || '';
+    const description = data.description || '';
     const name = `${transactionType} - ${cardType} - ${entryMode.toUpperCase()} - ${currencyWithCountry} - ${transactionAmount} - ${orderNumber}`;
     const postmanRequest = {
       name,
@@ -165,11 +175,11 @@ async function generatePostmanCollectionsByTransactionType() {
           listen: 'test',
           script: {
             type: 'text/javascript',
-            exec: TEST_SCRIPT,
+            exec: generateTestScript(orderNumber),
           },
         },
       ],
-      request: buildRequest(requestType, jsonBody),
+      request: buildRequest(requestType, jsonBody, description),
       response: [],
       sheetName: sheetName.toUpperCase(),
       postmanTypeFolder, // Store type for output path

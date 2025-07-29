@@ -62,6 +62,19 @@ describe('Postman Collection Generation', () => {
           // Place under mandatory with new currency-country structure
           path: `${TEST_OUTPUT_DIR}/json/mandatory/Sheet1/USD_UnitedStates_840/credit/authorization/visa/TEST002_USD_UnitedStates_840.json`,
         },
+        void: {
+          data: {
+            action: 'void',
+            amount: '25.00',
+            card_type: 'visa',
+            entry_mode: 'keyed',
+            currency_code: '840',
+            order_number: 'TEST004',
+            description: 'This is a void transaction',
+          },
+          // Place under mandatory with new currency-country structure
+          path: `${TEST_OUTPUT_DIR}/json/mandatory/Sheet1/USD_UnitedStates_840/credit/void/visa/TEST004_USD_UnitedStates_840.json`,
+        },
       },
       Sheet2: {
         keyed: {
@@ -150,10 +163,57 @@ describe('Postman Collection Generation', () => {
     expect(testScript.type).toBe('text/javascript');
     expect(testScript.exec).toEqual([
       'let response = pm.response.json();',
+      'let responseCode = pm.response;',
+      '',
+      'if (responseCode.code === 201) {',
+      '    var resp = JSON.parse(responseBody);',
+      '    postman.setGlobalVariable("TEST002", resp.data.id);',
+      '}',
       '',
       "pm.test(`Transaction status must be 'approved'`, function () {",
       '    pm.expect(response?.data?.verbiage?.toLowerCase()).to.eql("approval");',
       '});',
     ]);
+  });
+
+  test('should use PUT method for void transactions', async () => {
+    await generatePostmanCollectionsByTransactionType();
+
+    const allCollections = await findCollections(
+      path.join(__dirname, `../${TEST_OUTPUT_DIR}/postman`)
+    );
+
+    // Find a collection that contains void transactions
+    let voidRequest = null;
+    for (const collectionPath of allCollections) {
+      const collection = await fs.readJson(collectionPath);
+      for (const item of collection.item) {
+        for (const request of item.item) {
+          if (request.name.includes('TEST004') || request.name.toLowerCase().includes('void')) {
+            voidRequest = request;
+            break;
+          }
+        }
+        if (voidRequest) break;
+      }
+      if (voidRequest) break;
+    }
+
+    expect(voidRequest).not.toBeNull();
+    expect(voidRequest.request.method).toBe('PUT');
+  });
+
+  test('should use POST method for non-void transactions', async () => {
+    await generatePostmanCollectionsByTransactionType();
+
+    const allCollections = await findCollections(
+      path.join(__dirname, `../${TEST_OUTPUT_DIR}/postman`)
+    );
+
+    const sampleCollection = await fs.readJson(allCollections[0]);
+    const nonVoidRequest = sampleCollection.item[0].item[0];
+
+    // This should be a non-void request (TEST002)
+    expect(nonVoidRequest.request.method).toBe('POST');
   });
 });

@@ -1,8 +1,11 @@
-function buildRequest(type, jsonBody) {
+function buildRequest(type, jsonBody, description = '') {
+  // Determine HTTP method based on description
+  const method = description.toLowerCase().includes('void') ? 'PUT' : 'POST';
+  
   switch (type) {
     case 'zgate':
       return {
-        method: 'POST',
+        method: method,
         header: [
           { key: 'user-id', value: '{{ecomm_user_id}}' },
           { key: 'user-key', value: '{{ecomm_user_key}}' },
@@ -18,7 +21,7 @@ function buildRequest(type, jsonBody) {
 
     case 'oneCo':
       return {
-        method: 'POST',
+        method: method,
         header: [
           { key: 'user-id', value: '{{user-id}}' },
           { key: 'user-api-key', value: '{{user-api-key}}' },
