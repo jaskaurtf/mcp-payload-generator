@@ -93,14 +93,12 @@ function createBillingAddress(row) {
 function handleBillPayment(value) {
   return {
     bill_payment: !!value,
-    installment: value === 'Installment',
+    installment: value === 'Installment' || undefined,
     installment_number: value === 'Installment' ? 1 : undefined,
     installment_count: value === 'Installment' ? 1 : undefined,
     installment_counter: (['Recurring', 'Installment'].includes(value)) ? 1 : undefined,
     installment_total: value === 'Installment' ? 1 : undefined,
-    recurring: value === 'Recurring',
-    recurring_number: value === 'Recurring' ? 1 : undefined,
-    deferred_auth: value === 'Deferred',
+    deferred_auth: value === 'Deferred' || undefined,
     recurring_flag: (['Recurring', 'Installment'].includes(value)) ? 'yes' : undefined
   };
 }

@@ -78,12 +78,8 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
         street: '1307 Broad Hollow Road',
       },
       bill_payment: true,
-      installment: false,
-      recurring: true,
-      recurring_number: 1,
       recurring_flag: 'yes',
       installment_counter: 1,
-      deferred_auth: false,
       additional_amounts: [
         {
           type: 'clinical',
@@ -124,9 +120,7 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
       installment_counter: 1,
       installment_total: 1,
       recurring_flag: 'yes',
-      recurring: false,
       initiation_type: '',
-      deferred_auth: false,
     });
     // Verify COF transaction DOES have initiation_type
     expect(outputs[1].jsonOutput).toHaveProperty('initiation_type', '');
@@ -160,7 +154,7 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
     // Since bill payment indicator is empty, these fields should not exist
     expect(outputs[2].jsonOutput).not.toHaveProperty('bill_payment');
     expect(outputs[2].jsonOutput).not.toHaveProperty('installment');
-    expect(outputs[2].jsonOutput).not.toHaveProperty('recurring');
+    expect(outputs[2].jsonOutput).not.toHaveProperty('recurring_flag');
 
     // Check output paths
     expect(outputs[0].outputPath).toContain('mock-output');

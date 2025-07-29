@@ -46,12 +46,8 @@ describe('Excel to JSON Integration', () => {
         street: '1307 Broad Hollow Road',
       },
       bill_payment: true,
-      installment: false,
       installment_counter: 1,
-      recurring_flag: 'yes',
-      recurring: true,
-      recurring_number: 1,
-      deferred_auth: false,
+      recurring_flag: 'yes'
     });
     // Verify keyed transaction does NOT have initiation_type
     expect(sheet1Data).not.toHaveProperty('initiation_type');
@@ -89,9 +85,7 @@ describe('Excel to JSON Integration', () => {
       installment_counter: 1,
       installment_total: 1,
       recurring_flag: 'yes',
-      recurring: false,
       initiation_type: '',
-      deferred_auth: false,
     });
     // Verify COF transaction DOES have initiation_type
     expect(sheet2Data).toHaveProperty('initiation_type', '');
