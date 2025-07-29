@@ -96,7 +96,7 @@ function handleBillPayment(value) {
     installment: value === 'Installment',
     installment_number: value === 'Installment' ? 1 : undefined,
     installment_count: value === 'Installment' ? 1 : undefined,
-    installment_counter: value === 'Installment' ? 1 : undefined,
+    installment_counter: (['Recurring', 'Installment'].includes(value)) ? 1 : undefined,
     installment_total: value === 'Installment' ? 1 : undefined,
     recurring: value === 'Recurring',
     recurring_number: value === 'Recurring' ? 1 : undefined,
