@@ -68,7 +68,6 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
       currency_code: 'USD',
       order_number: 'TEST001',
       account_number: '12345678',
-      description: 'Secure Electronic Commerce transaction. Send XML tag with value 01.',
       secure_auth_data: 'hpqlETCoVYR1CAAAiX8HBjAAAAA=',
       billing_address: {
         city: '',
@@ -82,6 +81,8 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
       installment: false,
       recurring: true,
       recurring_number: 1,
+      recurring_flag: 'yes',
+      installment_counter: 1,
       deferred_auth: false,
       additional_amounts: [
         {
@@ -106,7 +107,6 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
       currency_code: 'EUR',
       order_number: 'TEST002',
       account_number: '123456789',
-      description: '3-D Secure transaction for authentication. Send XML tag with value 02.',
       threedsecure: '1',
       secure_auth_data: 'hpqlETCoVYR1CAAAiX8HBjAAAAA=',
       billing_address: {
@@ -123,8 +123,8 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
       installment_count: 1,
       installment_counter: 1,
       installment_total: 1,
+      recurring_flag: 'yes',
       recurring: false,
-      recurring_number: 1,
       initiation_type: '',
       deferred_auth: false,
     });
@@ -144,7 +144,6 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
       currency_code: 'USD',
       order_number: 'TEST003',
       account_number: '987654321',
-      description: 'Regular transaction without special handling.',
       billing_address: {
         city: '',
         country: 'United States',
