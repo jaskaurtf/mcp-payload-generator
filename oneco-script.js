@@ -94,10 +94,13 @@ function handleBillPayment(value) {
   return {
     bill_payment: !!value,
     installment: value === 'Installment',
-    installment_number: 1,
-    installment_count: 1,
+    installment_number: value === 'Installment' ? 1 : undefined,
+    installment_count: value === 'Installment' ? 1 : undefined,
+    installment_counter: value === 'Installment' ? 1 : undefined,
+    installment_total: value === 'Installment' ? 1 : undefined,
     recurring: value === 'Recurring',
-    recurring_number: 1,
+    recurring_number: value === 'Recurring' ? 1 : undefined,
+    delay_charge: value === 'Deferred',
   };
 }
 
