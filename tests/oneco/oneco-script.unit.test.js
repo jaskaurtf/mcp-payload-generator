@@ -82,7 +82,7 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
       installment: false,
       recurring: true,
       recurring_number: 1,
-      delay_charge: false,
+      deferred_auth: false,
       additional_amounts: [
         {
           type: 'clinical',
@@ -126,7 +126,7 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
       recurring: false,
       recurring_number: 1,
       initiation_type: '',
-      delay_charge: false,
+      deferred_auth: false,
     });
     // Verify COF transaction DOES have initiation_type
     expect(outputs[1].jsonOutput).toHaveProperty('initiation_type', '');

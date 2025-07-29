@@ -100,7 +100,7 @@ function handleBillPayment(value) {
     installment_total: value === 'Installment' ? 1 : undefined,
     recurring: value === 'Recurring',
     recurring_number: value === 'Recurring' ? 1 : undefined,
-    delay_charge: value === 'Deferred',
+    deferred_auth: value === 'Deferred',
   };
 }
 
