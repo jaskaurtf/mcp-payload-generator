@@ -48,10 +48,9 @@ describe('Excel to JSON Integration', () => {
       },
       bill_payment: true,
       installment: false,
-      installment_number: 1,
-      installment_count: 1,
       recurring: true,
       recurring_number: 1,
+      delay_charge: false,
     });
     // Verify keyed transaction does NOT have initiation_type
     expect(sheet1Data).not.toHaveProperty('initiation_type');
@@ -87,9 +86,11 @@ describe('Excel to JSON Integration', () => {
       installment: true,
       installment_number: 1,
       installment_count: 1,
+      installment_counter: 1,
+      installment_total: 1,
       recurring: false,
-      recurring_number: 1,
       initiation_type: '',
+      delay_charge: false,
     });
     // Verify COF transaction DOES have initiation_type
     expect(sheet2Data).toHaveProperty('initiation_type', '');
