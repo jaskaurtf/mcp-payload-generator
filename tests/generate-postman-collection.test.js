@@ -152,7 +152,7 @@ describe('Postman Collection Generation', () => {
       'let response = pm.response.json();',
       '',
       "pm.test(`Transaction status must be 'approved'`, function () {",
-      '    pm.expect(response.status.toLowerCase()).to.eql("approved");',
+      '    pm.expect(response?.data?.verbiage?.toLowerCase()).to.eql("approval");',
       '});',
     ]);
   });
