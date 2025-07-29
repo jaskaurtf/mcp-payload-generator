@@ -101,6 +101,7 @@ function handleBillPayment(value) {
     recurring: value === 'Recurring',
     recurring_number: value === 'Recurring' ? 1 : undefined,
     deferred_auth: value === 'Deferred',
+    recurring_flag: (['Recurring', 'Installment'].includes(value)) ? 'yes' : undefined
   };
 }
 
