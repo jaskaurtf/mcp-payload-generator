@@ -28,7 +28,7 @@ function buildRequest(type, jsonBody, description = '', orderNumber = '') {
           { key: 'user-key', value: '{{ecomm_user_key}}' },
           { key: 'Content-Type', value: 'application/json' },
         ],
-        body: { mode: 'raw', raw: jsonBody },
+        body: method === 'PUT' ? { mode: 'raw', raw: '' } : { mode: 'raw', raw: jsonBody },
         url: {
           raw: zgateUrl,
           host: ['{{url}}'],
@@ -56,7 +56,7 @@ function buildRequest(type, jsonBody, description = '', orderNumber = '') {
           { key: 'Accept', value: 'application/json' },
           { key: 'access-token', value: '{{access-token}}' },
         ],
-        body: { mode: 'raw', raw: jsonBody },
+        body: method === 'PUT' ? { mode: 'raw', raw: '' } : { mode: 'raw', raw: jsonBody },
         url: {
           raw: oneCoUrl,
           host: ['{{url}}'],

@@ -115,12 +115,30 @@ describe('requestBuilder', () => {
     });
 
     describe('Request Body', () => {
-      it('should include the JSON body in raw format', () => {
+      it('should include the JSON body in raw format for non-void transactions', () => {
         const result = buildRequest('oneCo', mockJsonBody, 'Regular transaction', '100392430031');
 
         expect(result.body).toEqual({
           mode: 'raw',
           raw: mockJsonBody,
+        });
+      });
+
+      it('should have empty body for void transactions', () => {
+        const result = buildRequest('oneCo', mockJsonBody, 'Void transaction test', '100392430031');
+
+        expect(result.body).toEqual({
+          mode: 'raw',
+          raw: '',
+        });
+      });
+
+      it('should have empty body for zgate void transactions', () => {
+        const result = buildRequest('zgate', mockJsonBody, 'Void transaction test', '100392430031');
+
+        expect(result.body).toEqual({
+          mode: 'raw',
+          raw: '',
         });
       });
     });
