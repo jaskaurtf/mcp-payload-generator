@@ -82,10 +82,10 @@ function createBillingAddress(row) {
   const currencyCode = row['trans. currency'];
   const currency = CURRENCY_MAP[currencyCode];
   return {
-    city: '',
-    state: '',
+    // city: '',
+    // state: '',
     postal_code: row['avs billing postal code'] || '',
-    phone: '',
+    // phone: '',
     country: currency ? currency.name : '',
     street: row['avs billing address'] || '',
   };
