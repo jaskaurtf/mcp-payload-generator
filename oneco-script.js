@@ -81,50 +81,86 @@ function normalizeCardType(cardType) {
 function createBillingAddress(row) {
   const currencyCode = row['trans. currency'];
   const currency = CURRENCY_MAP[currencyCode];
+
   return {
-    // city: '',
-    // state: '',
     postal_code: row['avs billing postal code'] || '',
-    // phone: '',
-    country: currency ? currency.name : '',
+    country: currency?.name || '',
     street: row['avs billing address'] || '',
   };
 }
 
 function handleBillPayment(value) {
-  return {
-    bill_payment: !!value,
-    installment: value === 'Installment' || undefined,
-    installment_number: value === 'Installment' ? 1 : undefined,
-    installment_count: value === 'Installment' ? 1 : undefined,
-    installment_counter: ['Recurring', 'Installment'].includes(value) ? 1 : undefined,
-    installment_total: value === 'Installment' ? 1 : undefined,
-    deferred_auth: value === 'Deferred' || undefined,
-    recurring_flag: ['Recurring', 'Installment'].includes(value) ? 'yes' : undefined,
+  // Default flags for all payment types
+  const defaultFlags = {
+    bill_payment: false,
+    installment: false,
+    installment_number: undefined,
+    installment_count: undefined,
+    installment_counter: undefined,
+    installment_total: undefined,
+    deferred_auth: false,
+    recurring_flag: undefined,
   };
+
+  // Return default flags if no value provided
+  if (!value) return defaultFlags;
+
+  // Base configuration for all payment types (bill_payment = true)
+  const baseConfig = { ...defaultFlags, bill_payment: true };
+
+  switch (value) {
+    case 'Installment':
+      return {
+        ...baseConfig,
+        installment: true,
+        installment_number: 1,
+        installment_count: 1,
+        installment_counter: 1,
+        installment_total: 1,
+        recurring_flag: 'yes',
+      };
+
+    case 'Recurring':
+      return {
+        ...baseConfig,
+        recurring_flag: 'yes',
+        installment_counter: 1,
+      };
+
+    case 'Deferred':
+      return {
+        ...baseConfig,
+        deferred_auth: true,
+      };
+
+    default:
+      return defaultFlags;
+  }
 }
 
 function parseAdditionalAmounts(amtStr, typeStr) {
+  // Return empty array if either parameter is missing
   if (!amtStr || !typeStr) return [];
 
-  const amountList = amtStr.split(',').map((a) => a.trim());
-  const typeList = typeStr.split(',').map((t) => t.trim().toLowerCase());
+  const amounts = amtStr.split(',').map((amount) => amount.trim());
+  const types = typeStr.split(',').map((type) => type.trim().toLowerCase());
 
-  const additionalAmounts = [];
-  for (let i = 0; i < Math.min(amountList.length, typeList.length); i++) {
-    const amountStr = amountList[i];
-    const rawType = typeList[i];
-    const normalizedType = TYPE_NORMALIZER[rawType] || rawType;
+  // Process each amount-type pair
+  return amounts
+    .map((amountStr, index) => {
+      const type = types[index];
+      const normalizedType = TYPE_NORMALIZER[type] || type;
 
-    if (normalizedType && amountStr) {
-      // Convert decimal amount to cents (remove decimal point)
+      // Skip if either type or amount is missing/invalid
+      if (!normalizedType || !amountStr) return null;
+
       const amount = parseFloat(amountStr) || 0;
-      const convertedAmount = String(Math.round(amount * 100));
-      additionalAmounts.push({ type: normalizedType, amount: convertedAmount });
-    }
-  }
-
-  return additionalAmounts;
+      return {
+        type: normalizedType,
+        amount: String(Math.round(amount * 100)), // Convert to cents
+      };
+    })
+    .filter(Boolean); // Remove null entries
 }
 
 function mapRowToJson(row) {
