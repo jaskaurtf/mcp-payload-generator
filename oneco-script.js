@@ -79,12 +79,8 @@ function normalizeCardType(cardType) {
 }
 
 function createBillingAddress(row) {
-  const currencyCode = row['trans. currency'];
-  const currency = CURRENCY_MAP[currencyCode];
-
   return {
     postal_code: row['avs billing postal code'] || '',
-    country: currency?.name || '',
     street: row['avs billing address'] || '',
   };
 }

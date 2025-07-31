@@ -70,7 +70,6 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
       account_number: '12345678',
       secure_auth_data: 'hpqlETCoVYR1CAAAiX8HBjAAAAA=',
       billing_address: {
-        country: 'United States',
         postal_code: '11747',
         street: '1307 Broad Hollow Road',
       },
@@ -103,7 +102,6 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
       threedsecure: '1',
       secure_auth_data: 'hpqlETCoVYR1CAAAiX8HBjAAAAA=',
       billing_address: {
-        country: 'Europe',
         postal_code: '11747',
         street: '1307 Broad Hollow Road',
       },
@@ -133,7 +131,6 @@ describe('processSheetData (unit, pure, no file I/O)', () => {
       order_number: 'TEST003',
       account_number: '987654321',
       billing_address: {
-        country: 'United States',
         postal_code: '12345',
         street: '123 Main Street',
       },

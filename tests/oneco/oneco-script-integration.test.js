@@ -39,7 +39,6 @@ describe('Excel to JSON Integration', () => {
       account_number: '12345678',
       secure_auth_data: 'hpqlETCoVYR1CAAAiX8HBjAAAAA=',
       billing_address: {
-        country: 'United States',
         postal_code: '11747',
         street: '1307 Broad Hollow Road',
       },
@@ -69,7 +68,6 @@ describe('Excel to JSON Integration', () => {
       threedsecure: '1',
       secure_auth_data: 'hpqlETCoVYR1CAAAiX8HBjAAAAA=',
       billing_address: {
-        country: 'Europe',
         postal_code: '11747',
         street: '1307 Broad Hollow Road',
       },
