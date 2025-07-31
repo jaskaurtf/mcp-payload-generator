@@ -1,4 +1,4 @@
-const { processSheetData } = require('./oneco-script.js');
+const { processSheetData } = require('../oneco-script.js');
 const fs = require('fs-extra');
 
 const testData = [

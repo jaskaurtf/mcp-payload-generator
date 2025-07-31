@@ -4,44 +4,35 @@ const glob = require('glob');
 const { v4: uuidv4 } = require('uuid');
 const { buildRequest } = require('./requestBuilder');
 
-// === Currency code to country mapping ===
-const CURRENCY_COUNTRY_MAP = {
-  '036': 'AUD_Australia_036',
-  124: 'CAD_Canada_124',
-  344: 'HKD_HongKong_344',
-  392: 'JPY_Japan_392',
-  400: 'JOD_Jordan_400',
-  554: 'NZD_NewZealand_554',
-  702: 'SGD_Singapore_702',
-  764: 'THB_Thailand_764',
-  840: 'USD_UnitedStates_840',
-  978: 'EUR_Europe_978',
-  826: 'GBP_UnitedKingdom_826',
-};
-
-// === Currency abbreviation to country mapping ===
-const CURRENCY_ABBREV_MAP = {
-  AUD: 'AUD_Australia_036',
-  CAD: 'CAD_Canada_124',
-  HKD: 'HKD_HongKong_344',
-  JPY: 'JPY_Japan_392',
-  JOD: 'JOD_Jordan_400',
-  NZD: 'NZD_NewZealand_554',
-  SGD: 'SGD_Singapore_702',
-  THB: 'THB_Thailand_764',
-  USD: 'USD_UnitedStates_840',
-  EUR: 'EUR_Europe_978',
-  GBP: 'GBP_UnitedKingdom_826',
+// === Currency mapping configuration ===
+const CURRENCY_MAP = {
+  '036': { code: 'AUD', fullCode: 'AUD_Australia_036' },
+  124: { code: 'CAD', fullCode: 'CAD_Canada_124' },
+  344: { code: 'HKD', fullCode: 'HKD_HongKong_344' },
+  392: { code: 'JPY', fullCode: 'JPY_Japan_392' },
+  400: { code: 'JOD', fullCode: 'JOD_Jordan_400' },
+  554: { code: 'NZD', fullCode: 'NZD_NewZealand_554' },
+  702: { code: 'SGD', fullCode: 'SGD_Singapore_702' },
+  764: { code: 'THB', fullCode: 'THB_Thailand_764' },
+  840: { code: 'USD', fullCode: 'USD_UnitedStates_840' },
+  978: { code: 'EUR', fullCode: 'EUR_Europe_978' },
+  826: { code: 'GBP', fullCode: 'GBP_UnitedKingdom_826' },
 };
 
 // Function to get currency with country name
 function getCurrencyWithCountry(currencyCode) {
-  // Try numeric code first, then abbreviation
-  return (
-    CURRENCY_COUNTRY_MAP[currencyCode] ||
-    CURRENCY_ABBREV_MAP[currencyCode] ||
-    `${currencyCode}_Unknown`
+  // Try numeric code first
+  const numericMatch = CURRENCY_MAP[currencyCode];
+  if (numericMatch) return numericMatch.fullCode;
+
+  // Try abbreviation by searching through the map
+  const abbreviationMatch = Object.values(CURRENCY_MAP).find(
+    (currency) => currency.code === currencyCode
   );
+  if (abbreviationMatch) return abbreviationMatch.fullCode;
+
+  // Return unknown format if not found
+  return `${currencyCode}_Unknown`;
 }
 
 // === Get command line args requestType ===

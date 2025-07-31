@@ -159,6 +159,50 @@ function parseAdditionalAmounts(amtStr, typeStr) {
     .filter(Boolean); // Remove null entries
 }
 
+// Helper function to detect secure authentication patterns with typo tolerance
+function detectSecureAuthType(description) {
+  if (!description) return null;
+
+  const normalizedDesc = description
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '')
+    .replace(/\s+/g, ' ');
+
+  // Pattern for "Secure Electronic Commerce transaction" with extensive typo tolerance
+  const secureCommercePatterns = [
+    /secure\s+electronic\s+commerce\s+transact/,
+    /secure\s+electronic\s+commerse\s+transact/, // commerce typo
+    /secure\s+electroni[ck]\s+commerce\s+transact/, // electronic typo
+    /secure\s+electronic\s+commerce\s+transction/, // transaction typo
+    /secure\s+electronik\s+commerce\s+transact/, // electronik typo
+    /secure\s+electronik\s+commerce\s+transction/, // electronik + transaction typos
+    /secure\s+electronic\s+commerse\s+transction/, // commerce + transaction typos
+    /secure\s+electroni[ck]\s+commerse\s+transact/, // electronic + commerce typos
+    /secure\s+electroni[ck]\s+commerse\s+transction/, // electronic + commerce + transaction typos
+  ];
+
+  // Pattern for "3-D Secure transaction" with variations
+  const threeDSecurePatterns = [
+    /3\s*d\s+secure\s+transact/,
+    /three\s*d\s+secure\s+transact/,
+    /3ds\s+secure\s+transact/,
+    /3\s*d\s+secure\s+transction/, // typo tolerance
+    /three\s*d\s+secure\s+transction/,
+  ];
+
+  // Check for 3-D Secure first (more specific)
+  if (threeDSecurePatterns.some((pattern) => pattern.test(normalizedDesc))) {
+    return 'threedsecure';
+  }
+
+  // Check for Secure Electronic Commerce
+  if (secureCommercePatterns.some((pattern) => pattern.test(normalizedDesc))) {
+    return 'secure_commerce';
+  }
+
+  return null;
+}
+
 function mapRowToJson(row) {
   const jsonOutput = { ...DEFAULTS };
 
@@ -209,14 +253,14 @@ function mapRowToJson(row) {
     jsonOutput.additional_amounts = additionalAmounts;
   }
 
-  // Add secure_auth_data if description contains "Secure Electronic Commerce transaction."
-  // Add threedsecure and secure_auth_data if description contains "3-D Secure transaction"
+  // Handle secure authentication based on description patterns
   const description = (row['description'] || '').toString().trim();
-  if (description.includes('Secure Electronic Commerce transaction.')) {
-    jsonOutput.secure_auth_data = 'hpqlETCoVYR1CAAAiX8HBjAAAAA=';
-  }
-  if (description.includes('3-D Secure transaction')) {
+  const secureAuthType = detectSecureAuthType(description);
+
+  if (secureAuthType === 'threedsecure') {
     jsonOutput.threedsecure = '1';
+    jsonOutput.secure_auth_data = 'hpqlETCoVYR1CAAAiX8HBjAAAAA=';
+  } else if (secureAuthType === 'secure_commerce') {
     jsonOutput.secure_auth_data = 'hpqlETCoVYR1CAAAiX8HBjAAAAA=';
   }
 
@@ -311,6 +355,7 @@ module.exports = {
   getCurrencyCode,
   normalizeCardType,
   parseAdditionalAmounts,
+  detectSecureAuthType,
   writeJsonWithCommentedDescription,
   readJsonWithCommentedDescription: (filePath) => {
     let fileContent = fs.readFileSync(filePath, 'utf8');

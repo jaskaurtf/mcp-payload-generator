@@ -1,4 +1,4 @@
-const { processSheetData } = require('./oneco-script.js');
+const { processSheetData } = require('../oneco-script.js');
 
 // Test data with different description scenarios
 const testData = [
