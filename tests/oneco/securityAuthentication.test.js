@@ -47,7 +47,7 @@ describe('OneCo Script - Security Authentication', () => {
         });
 
         // Verify fields that should not be present
-        notExpectedFields.forEach(field => {
+        notExpectedFields.forEach((field) => {
           expect(output[field]).toBeUndefined();
         });
       });
@@ -59,25 +59,25 @@ describe('OneCo Script - Security Authentication', () => {
       {
         name: 'should detect standard 3-D Secure',
         description: '3-D Secure transaction',
-        expectedFields: { 
+        expectedFields: {
           secure_auth_data: 'hpqlETCoVYR1CAAAiX8HBjAAAAA=',
-          threedsecure: '1'
+          threedsecure: '1',
         },
       },
       {
         name: 'should detect alternative 3D format',
         description: '3D secure transaction',
-        expectedFields: { 
+        expectedFields: {
           secure_auth_data: 'hpqlETCoVYR1CAAAiX8HBjAAAAA=',
-          threedsecure: '1'
+          threedsecure: '1',
         },
       },
       {
         name: 'should handle case variations',
         description: '3-d SECURE transaction for authentication',
-        expectedFields: { 
+        expectedFields: {
           secure_auth_data: 'hpqlETCoVYR1CAAAiX8HBjAAAAA=',
-          threedsecure: '1'
+          threedsecure: '1',
         },
       },
     ];

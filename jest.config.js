@@ -5,19 +5,14 @@ module.exports = {
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov'],
   collectCoverageFrom: [
-    'zgate-script.js', 
-    'generate-postman-collection.js', 
+    'zgate-script.js',
+    'generate-postman-collection.js',
     'oneco-script.js',
-    'requestBuilder.js'
+    'requestBuilder.js',
   ],
   setupFilesAfterEnv: ['./tests/setup.js'],
   // Setup for test organization
-  testPathIgnorePatterns: [
-    '/node_modules/',
-    '/coverage/',
-    '/temp-test/',
-    '/output/',
-  ],
+  testPathIgnorePatterns: ['/node_modules/', '/coverage/', '/temp-test/', '/output/'],
   // Run tests sequentially to prevent test interference
   maxWorkers: 1,
   // Clear mocks between tests

@@ -69,11 +69,11 @@ const EXPECTED_OUTPUTS = {
       method: 'POST',
       expectedHeaders: [
         'user-id',
-        'user-api-key', 
+        'user-api-key',
         'Content-Type',
         'developer-id',
         'Accept',
-        'access-token'
+        'access-token',
       ],
       urlPattern: /^{{url}}\/{{namespace}}\/transactions\/cc\/(sale|refund|avs-only)\/keyed$/,
     },
@@ -82,10 +82,10 @@ const EXPECTED_OUTPUTS = {
       expectedHeaders: [
         'user-id',
         'user-api-key',
-        'Content-Type', 
+        'Content-Type',
         'developer-id',
         'Accept',
-        'access-token'
+        'access-token',
       ],
       urlPattern: /^{{url}}\/{{namespace}}\/transactions\/{{[0-9]+}}\/void$/,
       emptyBody: true,
@@ -96,7 +96,7 @@ const EXPECTED_OUTPUTS = {
       urlPattern: /^{{url}}\/{{namespace}}\/transactions$/,
     },
     zgatePut: {
-      method: 'PUT', 
+      method: 'PUT',
       expectedHeaders: ['user-id', 'user-key', 'Content-Type'],
       urlPattern: /^{{url}}\/{{namespace}}\/transactions\/{{[0-9]+}}\/void$/,
       emptyBody: true,
@@ -122,21 +122,21 @@ const TestHelpers = {
   // Validate request structure
   validateRequestStructure: (request, expectedType) => {
     const expected = EXPECTED_OUTPUTS.requestBuilder[expectedType];
-    
+
     expect(request).toHaveProperty('method', expected.method);
     expect(request).toHaveProperty('header');
     expect(request).toHaveProperty('body');
     expect(request).toHaveProperty('url');
-    
+
     // Validate headers
-    const headerKeys = request.header.map(h => h.key);
-    expected.expectedHeaders.forEach(headerKey => {
+    const headerKeys = request.header.map((h) => h.key);
+    expected.expectedHeaders.forEach((headerKey) => {
       expect(headerKeys).toContain(headerKey);
     });
-    
+
     // Validate URL pattern
     expect(request.url.raw).toMatch(expected.urlPattern);
-    
+
     // Validate empty body for PUT requests
     if (expected.emptyBody) {
       expect(request.body.raw).toBe('');

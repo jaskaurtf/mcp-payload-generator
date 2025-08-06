@@ -44,15 +44,15 @@ const TestSetup = {
   // Setup mock return values
   setupMocks: (mockData = {}) => {
     const fsMock = require('fs-extra');
-    
+
     if (mockData.files) {
       fsMock.readdirSync.mockReturnValue(mockData.files);
     }
-    
+
     if (mockData.fileContent) {
       fsMock.readFileSync.mockReturnValue(mockData.fileContent);
     }
-    
+
     if (mockData.fileExists !== undefined) {
       fsMock.existsSync.mockReturnValue(mockData.fileExists);
     }

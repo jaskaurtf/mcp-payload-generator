@@ -6,15 +6,19 @@ describe('RequestBuilder', () => {
     let mockJsonBody;
 
     beforeEach(() => {
-      mockJsonBody = JSON.stringify({
-        location_id: '{{location_id}}',
-        product_transaction_id: '{{product_transaction_id_ecommerce}}',
-        account_number: '4264281500006662',
-        transaction_amount: '21001',
-        entry_mode_id: 'K',
-        currency_code: 'AUD',
-        order_number: '100392430031',
-      }, null, 2);
+      mockJsonBody = JSON.stringify(
+        {
+          location_id: '{{location_id}}',
+          product_transaction_id: '{{product_transaction_id_ecommerce}}',
+          account_number: '4264281500006662',
+          transaction_amount: '21001',
+          entry_mode_id: 'K',
+          currency_code: 'AUD',
+          order_number: '100392430031',
+        },
+        null,
+        2
+      );
     });
 
     describe('HTTP Method Determination', () => {
@@ -52,13 +56,13 @@ describe('RequestBuilder', () => {
           expectedEndpoint: '/sale/keyed',
         },
         {
-          name: 'Refund', 
+          name: 'Refund',
           transactionType: 'Refund',
           expectedEndpoint: '/refund/keyed',
         },
         {
           name: 'Verification',
-          transactionType: 'Verification', 
+          transactionType: 'Verification',
           expectedEndpoint: '/avs-only/keyed',
         },
         {
@@ -70,8 +74,14 @@ describe('RequestBuilder', () => {
 
       transactionTypeTests.forEach(({ name, transactionType, expectedEndpoint }) => {
         it(`should generate correct URL for POST requests with ${name}`, () => {
-          const result = buildRequest('oneCo', mockJsonBody, 'Regular transaction', '100392430031', transactionType);
-          
+          const result = buildRequest(
+            'oneCo',
+            mockJsonBody,
+            'Regular transaction',
+            '100392430031',
+            transactionType
+          );
+
           expect(result.url.raw).toBe(`{{url}}/{{namespace}}/transactions/cc${expectedEndpoint}`);
           expect(result.url.path).toEqual(['{{namespace}}', `transactions/cc${expectedEndpoint}`]);
         });
@@ -141,22 +151,29 @@ describe('RequestBuilder', () => {
     describe('Headers Validation', () => {
       it('should include correct headers for oneCo requests', () => {
         const result = buildRequest('oneCo', mockJsonBody, 'Regular transaction', '100392430031');
-        
-        const headerKeys = result.header.map(h => h.key);
-        const expectedHeaders = ['user-id', 'user-api-key', 'Content-Type', 'developer-id', 'Accept', 'access-token'];
-        
-        expectedHeaders.forEach(header => {
+
+        const headerKeys = result.header.map((h) => h.key);
+        const expectedHeaders = [
+          'user-id',
+          'user-api-key',
+          'Content-Type',
+          'developer-id',
+          'Accept',
+          'access-token',
+        ];
+
+        expectedHeaders.forEach((header) => {
           expect(headerKeys).toContain(header);
         });
       });
 
       it('should include correct headers for zgate requests', () => {
         const result = buildRequest('zgate', mockJsonBody, 'Regular transaction', '100392430031');
-        
-        const headerKeys = result.header.map(h => h.key);
+
+        const headerKeys = result.header.map((h) => h.key);
         const expectedHeaders = ['user-id', 'user-key', 'Content-Type'];
-        
-        expectedHeaders.forEach(header => {
+
+        expectedHeaders.forEach((header) => {
           expect(headerKeys).toContain(header);
         });
       });
