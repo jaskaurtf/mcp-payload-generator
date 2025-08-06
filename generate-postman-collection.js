@@ -199,7 +199,7 @@ async function generatePostmanCollectionsByTransactionType() {
           },
         },
       ],
-      request: buildRequest(requestType, jsonBody, description, orderNumber),
+      request: buildRequest(requestType, jsonBody, description, orderNumber, transactionType),
       response: [],
       sheetName: sheetName.toUpperCase(),
       postmanTypeFolder, // Store type for output path

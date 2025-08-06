@@ -1,4 +1,4 @@
-function buildRequest(type, jsonBody, description = '', orderNumber = '') {
+function buildRequest(type, jsonBody, description = '', orderNumber = '', transactionType = '') {
   // Determine HTTP method based on description
   const method = description.toLowerCase().includes('void') ? 'PUT' : 'POST';
 
@@ -9,6 +9,21 @@ function buildRequest(type, jsonBody, description = '', orderNumber = '') {
       : method === 'PUT'
         ? '{{dynamicValue}}'
         : '';
+
+  // Determine URL ending based on transaction type
+  const getTransactionEndpoint = (transactionType) => {
+    const type = transactionType.toLowerCase();
+    switch (type) {
+      case 'authorization':
+        return '/sale/keyed';
+      case 'refund':
+        return '/refund/keyed';
+      case 'verification':
+        return '/avs-only/keyed';
+      default:
+        return '/sale/keyed'; // default to authorization
+    }
+  };
 
   switch (type) {
     case 'zgate':
@@ -37,14 +52,15 @@ function buildRequest(type, jsonBody, description = '', orderNumber = '') {
       };
 
     case 'oneCo':
+      const endpoint = getTransactionEndpoint(transactionType);
       const oneCoUrl =
         method === 'PUT'
           ? `{{url}}/{{namespace}}/transactions/${dynamicValue}/void`
-          : '{{url}}/{{namespace}}/transactions/cc/sale/keyed';
+          : `{{url}}/{{namespace}}/transactions/cc${endpoint}`;
       const oneCoPath =
         method === 'PUT'
           ? ['{{namespace}}', 'transactions', dynamicValue, 'void']
-          : ['{{namespace}}', 'transactions/cc/sale/keyed'];
+          : ['{{namespace}}', `transactions/cc${endpoint}`];
 
       return {
         method: method,

@@ -34,7 +34,59 @@ describe('requestBuilder', () => {
     });
 
     describe('URL Generation for oneCo', () => {
-      it('should generate correct URL for POST requests', () => {
+      it('should generate correct URL for POST requests with Authorization', () => {
+        const result = buildRequest(
+          'oneCo',
+          mockJsonBody,
+          'Regular transaction',
+          '100392430031',
+          'Authorization'
+        );
+
+        expect(result.url.raw).toBe('{{url}}/{{namespace}}/transactions/cc/sale/keyed');
+        expect(result.url.path).toEqual(['{{namespace}}', 'transactions/cc/sale/keyed']);
+      });
+
+      it('should generate correct URL for POST requests with Refund', () => {
+        const result = buildRequest(
+          'oneCo',
+          mockJsonBody,
+          'Regular transaction',
+          '100392430031',
+          'Refund'
+        );
+
+        expect(result.url.raw).toBe('{{url}}/{{namespace}}/transactions/cc/refund/keyed');
+        expect(result.url.path).toEqual(['{{namespace}}', 'transactions/cc/refund/keyed']);
+      });
+
+      it('should generate correct URL for POST requests with Verification', () => {
+        const result = buildRequest(
+          'oneCo',
+          mockJsonBody,
+          'Regular transaction',
+          '100392430031',
+          'Verification'
+        );
+
+        expect(result.url.raw).toBe('{{url}}/{{namespace}}/transactions/cc/avs-only/keyed');
+        expect(result.url.path).toEqual(['{{namespace}}', 'transactions/cc/avs-only/keyed']);
+      });
+
+      it('should default to Authorization URL when transaction type is unknown', () => {
+        const result = buildRequest(
+          'oneCo',
+          mockJsonBody,
+          'Regular transaction',
+          '100392430031',
+          'Unknown'
+        );
+
+        expect(result.url.raw).toBe('{{url}}/{{namespace}}/transactions/cc/sale/keyed');
+        expect(result.url.path).toEqual(['{{namespace}}', 'transactions/cc/sale/keyed']);
+      });
+
+      it('should generate correct URL for POST requests (backward compatibility)', () => {
         const result = buildRequest('oneCo', mockJsonBody, 'Regular transaction', '100392430031');
 
         expect(result.url.raw).toBe('{{url}}/{{namespace}}/transactions/cc/sale/keyed');
