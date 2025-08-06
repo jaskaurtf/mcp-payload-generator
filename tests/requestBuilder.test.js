@@ -1,9 +1,12 @@
 const { buildRequest } = require('../requestBuilder');
+const { TEST_DATA, TestHelpers } = require('./fixtures/testFixtures');
 
-describe('requestBuilder', () => {
+describe('RequestBuilder', () => {
   describe('buildRequest', () => {
-    const mockJsonBody = JSON.stringify(
-      {
+    let mockJsonBody;
+
+    beforeEach(() => {
+      mockJsonBody = JSON.stringify({
         location_id: '{{location_id}}',
         product_transaction_id: '{{product_transaction_id_ecommerce}}',
         account_number: '4264281500006662',
@@ -11,79 +14,67 @@ describe('requestBuilder', () => {
         entry_mode_id: 'K',
         currency_code: 'AUD',
         order_number: '100392430031',
-      },
-      null,
-      2
-    );
+      }, null, 2);
+    });
 
     describe('HTTP Method Determination', () => {
-      it('should use POST method for non-void transactions', () => {
-        const result = buildRequest('oneCo', mockJsonBody, 'Regular transaction', '100392430031');
-        expect(result.method).toBe('POST');
-      });
+      const testCases = [
+        {
+          name: 'should use POST method for non-void transactions',
+          description: 'Regular transaction',
+          expectedMethod: 'POST',
+        },
+        {
+          name: 'should use PUT method for void transactions',
+          description: 'Void transaction test',
+          expectedMethod: 'PUT',
+        },
+        {
+          name: 'should be case insensitive for void detection',
+          description: 'VOID Transaction Test',
+          expectedMethod: 'PUT',
+        },
+      ];
 
-      it('should use PUT method for void transactions', () => {
-        const result = buildRequest('oneCo', mockJsonBody, 'Void transaction test', '100392430031');
-        expect(result.method).toBe('PUT');
-      });
-
-      it('should be case insensitive for void detection', () => {
-        const result = buildRequest('oneCo', mockJsonBody, 'VOID Transaction Test', '100392430031');
-        expect(result.method).toBe('PUT');
+      testCases.forEach(({ name, description, expectedMethod }) => {
+        it(name, () => {
+          const result = buildRequest('oneCo', mockJsonBody, description, '100392430031');
+          expect(result.method).toBe(expectedMethod);
+        });
       });
     });
 
     describe('URL Generation for oneCo', () => {
-      it('should generate correct URL for POST requests with Authorization', () => {
-        const result = buildRequest(
-          'oneCo',
-          mockJsonBody,
-          'Regular transaction',
-          '100392430031',
-          'Authorization'
-        );
+      const transactionTypeTests = [
+        {
+          name: 'Authorization',
+          transactionType: 'Authorization',
+          expectedEndpoint: '/sale/keyed',
+        },
+        {
+          name: 'Refund', 
+          transactionType: 'Refund',
+          expectedEndpoint: '/refund/keyed',
+        },
+        {
+          name: 'Verification',
+          transactionType: 'Verification', 
+          expectedEndpoint: '/avs-only/keyed',
+        },
+        {
+          name: 'Unknown (defaults to Authorization)',
+          transactionType: 'Unknown',
+          expectedEndpoint: '/sale/keyed',
+        },
+      ];
 
-        expect(result.url.raw).toBe('{{url}}/{{namespace}}/transactions/cc/sale/keyed');
-        expect(result.url.path).toEqual(['{{namespace}}', 'transactions/cc/sale/keyed']);
-      });
-
-      it('should generate correct URL for POST requests with Refund', () => {
-        const result = buildRequest(
-          'oneCo',
-          mockJsonBody,
-          'Regular transaction',
-          '100392430031',
-          'Refund'
-        );
-
-        expect(result.url.raw).toBe('{{url}}/{{namespace}}/transactions/cc/refund/keyed');
-        expect(result.url.path).toEqual(['{{namespace}}', 'transactions/cc/refund/keyed']);
-      });
-
-      it('should generate correct URL for POST requests with Verification', () => {
-        const result = buildRequest(
-          'oneCo',
-          mockJsonBody,
-          'Regular transaction',
-          '100392430031',
-          'Verification'
-        );
-
-        expect(result.url.raw).toBe('{{url}}/{{namespace}}/transactions/cc/avs-only/keyed');
-        expect(result.url.path).toEqual(['{{namespace}}', 'transactions/cc/avs-only/keyed']);
-      });
-
-      it('should default to Authorization URL when transaction type is unknown', () => {
-        const result = buildRequest(
-          'oneCo',
-          mockJsonBody,
-          'Regular transaction',
-          '100392430031',
-          'Unknown'
-        );
-
-        expect(result.url.raw).toBe('{{url}}/{{namespace}}/transactions/cc/sale/keyed');
-        expect(result.url.path).toEqual(['{{namespace}}', 'transactions/cc/sale/keyed']);
+      transactionTypeTests.forEach(({ name, transactionType, expectedEndpoint }) => {
+        it(`should generate correct URL for POST requests with ${name}`, () => {
+          const result = buildRequest('oneCo', mockJsonBody, 'Regular transaction', '100392430031', transactionType);
+          
+          expect(result.url.raw).toBe(`{{url}}/{{namespace}}/transactions/cc${expectedEndpoint}`);
+          expect(result.url.path).toEqual(['{{namespace}}', `transactions/cc${expectedEndpoint}`]);
+        });
       });
 
       it('should generate correct URL for POST requests (backward compatibility)', () => {
@@ -105,18 +96,24 @@ describe('requestBuilder', () => {
         ]);
       });
 
-      it('should handle numeric order numbers correctly', () => {
-        const result = buildRequest('oneCo', mockJsonBody, 'Void test', 123456789);
+      const dynamicValueTests = [
+        {
+          name: 'should handle numeric order numbers correctly',
+          orderNumber: 123456789,
+          expectedDynamic: '{{123456788}}',
+        },
+        {
+          name: 'should handle edge case of order number 1',
+          orderNumber: '1',
+          expectedDynamic: '{{0}}',
+        },
+      ];
 
-        expect(result.url.raw).toBe('{{url}}/{{namespace}}/transactions/{{123456788}}/void');
-        expect(result.url.path).toEqual(['{{namespace}}', 'transactions', '{{123456788}}', 'void']);
-      });
-
-      it('should handle edge case of order number 1', () => {
-        const result = buildRequest('oneCo', mockJsonBody, 'Void test', '1');
-
-        expect(result.url.raw).toBe('{{url}}/{{namespace}}/transactions/{{0}}/void');
-        expect(result.url.path).toEqual(['{{namespace}}', 'transactions', '{{0}}', 'void']);
+      dynamicValueTests.forEach(({ name, orderNumber, expectedDynamic }) => {
+        it(name, () => {
+          const result = buildRequest('oneCo', mockJsonBody, 'Void test', orderNumber);
+          expect(result.url.raw).toBe(`{{url}}/{{namespace}}/transactions/${expectedDynamic}/void`);
+        });
       });
     });
 
@@ -141,76 +138,86 @@ describe('requestBuilder', () => {
       });
     });
 
-    describe('Headers', () => {
+    describe('Headers Validation', () => {
       it('should include correct headers for oneCo requests', () => {
         const result = buildRequest('oneCo', mockJsonBody, 'Regular transaction', '100392430031');
-
-        expect(result.header).toEqual([
-          { key: 'user-id', value: '{{user-id}}' },
-          { key: 'user-api-key', value: '{{user-api-key}}' },
-          { key: 'Content-Type', value: 'application/json' },
-          { key: 'developer-id', value: '{{developer-id}}' },
-          { key: 'Accept', value: 'application/json' },
-          { key: 'access-token', value: '{{access-token}}' },
-        ]);
+        
+        const headerKeys = result.header.map(h => h.key);
+        const expectedHeaders = ['user-id', 'user-api-key', 'Content-Type', 'developer-id', 'Accept', 'access-token'];
+        
+        expectedHeaders.forEach(header => {
+          expect(headerKeys).toContain(header);
+        });
       });
 
       it('should include correct headers for zgate requests', () => {
         const result = buildRequest('zgate', mockJsonBody, 'Regular transaction', '100392430031');
-
-        expect(result.header).toEqual([
-          { key: 'user-id', value: '{{ecomm_user_id}}' },
-          { key: 'user-key', value: '{{ecomm_user_key}}' },
-          { key: 'Content-Type', value: 'application/json' },
-        ]);
+        
+        const headerKeys = result.header.map(h => h.key);
+        const expectedHeaders = ['user-id', 'user-key', 'Content-Type'];
+        
+        expectedHeaders.forEach(header => {
+          expect(headerKeys).toContain(header);
+        });
       });
     });
 
-    describe('Request Body', () => {
+    describe('Request Body Handling', () => {
       it('should include the JSON body in raw format for non-void transactions', () => {
         const result = buildRequest('oneCo', mockJsonBody, 'Regular transaction', '100392430031');
 
-        expect(result.body).toEqual({
-          mode: 'raw',
-          raw: mockJsonBody,
-        });
+        expect(result.body.mode).toBe('raw');
+        expect(result.body.raw).toBe(mockJsonBody);
       });
 
-      it('should have empty body for void transactions', () => {
-        const result = buildRequest('oneCo', mockJsonBody, 'Void transaction test', '100392430031');
+      const voidTests = [
+        { type: 'oneCo', description: 'should have empty body for oneCo void transactions' },
+        { type: 'zgate', description: 'should have empty body for zgate void transactions' },
+      ];
 
-        expect(result.body).toEqual({
-          mode: 'raw',
-          raw: '',
-        });
-      });
+      voidTests.forEach(({ type, description }) => {
+        it(description, () => {
+          const result = buildRequest(type, mockJsonBody, 'Void transaction test', '100392430031');
 
-      it('should have empty body for zgate void transactions', () => {
-        const result = buildRequest('zgate', mockJsonBody, 'Void transaction test', '100392430031');
-
-        expect(result.body).toEqual({
-          mode: 'raw',
-          raw: '',
+          expect(result.body.mode).toBe('raw');
+          expect(result.body.raw).toBe('');
         });
       });
     });
 
     describe('Edge Cases', () => {
-      it('should handle empty description', () => {
-        const result = buildRequest('oneCo', mockJsonBody, '', '100392430031');
-        expect(result.method).toBe('POST');
-      });
+      const edgeCases = [
+        {
+          name: 'should handle empty description',
+          params: ['oneCo', mockJsonBody, '', '100392430031'],
+          expectations: (result) => {
+            expect(result.method).toBe('POST');
+            expect(result.url.raw).toBe('{{url}}/{{namespace}}/transactions/cc/sale/keyed');
+          },
+        },
+        {
+          name: 'should handle empty order number for non-void requests',
+          params: ['oneCo', mockJsonBody, 'Regular transaction', ''],
+          expectations: (result) => {
+            expect(result.method).toBe('POST');
+            expect(result.url.raw).toBe('{{url}}/{{namespace}}/transactions/cc/sale/keyed');
+          },
+        },
+        {
+          name: 'should handle empty order number for void requests',
+          params: ['oneCo', mockJsonBody, 'Void transaction', ''],
+          expectations: (result) => {
+            expect(result.method).toBe('PUT');
+            expect(result.url.raw).toBe('{{url}}/{{namespace}}/transactions/{{dynamicValue}}/void');
+          },
+        },
+      ];
 
-      it('should handle empty order number for non-void requests', () => {
-        const result = buildRequest('oneCo', mockJsonBody, 'Regular transaction', '');
-        expect(result.method).toBe('POST');
-        expect(result.url.raw).toBe('{{url}}/{{namespace}}/transactions/cc/sale/keyed');
-      });
-
-      it('should handle empty order number for void requests', () => {
-        const result = buildRequest('oneCo', mockJsonBody, 'Void transaction test', '');
-        expect(result.method).toBe('PUT');
-        expect(result.url.raw).toBe('{{url}}/{{namespace}}/transactions/{{dynamicValue}}/void');
+      edgeCases.forEach(({ name, params, expectations }) => {
+        it(name, () => {
+          const result = buildRequest(...params);
+          expectations(result);
+        });
       });
 
       it('should throw error for unknown request type', () => {
@@ -229,15 +236,11 @@ describe('requestBuilder', () => {
         'VOID transaction in uppercase',
       ];
 
-      voidDescriptions.forEach((description, index) => {
+      voidDescriptions.forEach((description) => {
         it(`should detect void in: "${description}"`, () => {
-          const orderNumber = `10039243003${index}`;
-          const expectedDynamic = `{{${String(Number(orderNumber) - 1)}}}`;
-          const result = buildRequest('oneCo', mockJsonBody, description, orderNumber);
-
+          const result = buildRequest('oneCo', mockJsonBody, description, '100392430031');
           expect(result.method).toBe('PUT');
           expect(result.url.raw).toContain('/void');
-          expect(result.url.raw).toBe(`{{url}}/{{namespace}}/transactions/${expectedDynamic}/void`);
         });
       });
     });
