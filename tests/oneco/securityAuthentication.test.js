@@ -115,6 +115,55 @@ describe('OneCo Script - Security Authentication', () => {
     });
   });
 
+  describe('Currency-Specific Amount Processing', () => {
+    const currencyAmountTests = [
+      {
+        name: 'should convert USD amounts to cents',
+        currency: '840',
+        amount: '10.50',
+        expectedAmount: '1050',
+        additionalAmount: '5.25',
+        expectedAdditional: '525',
+      },
+      {
+        name: 'should keep JPY amounts as-is (no decimal conversion)',
+        currency: '392',
+        amount: '589',
+        expectedAmount: '589',
+        additionalAmount: '100',
+        expectedAdditional: '100',
+      },
+      {
+        name: 'should convert EUR amounts to cents',
+        currency: '978',
+        amount: '25.99',
+        expectedAmount: '2599',
+        additionalAmount: '12.50',
+        expectedAdditional: '1250',
+      },
+    ];
+
+    currencyAmountTests.forEach(({ name, currency, amount, expectedAmount, additionalAmount, expectedAdditional }) => {
+      it(name, () => {
+        const testData = TestHelpers.createTestData({
+          'trans. currency': currency,
+          'transaction amount': amount,
+          'additional amount': additionalAmount,
+          'additional amount type': 'clinical',
+        });
+        
+        const result = processSheetData('test', [testData]);
+        const output = result[0].jsonOutput;
+
+        expect(output.transaction_amount).toBe(expectedAmount);
+        
+        if (output.additional_amounts && output.additional_amounts.length > 0) {
+          expect(output.additional_amounts[0].amount).toBe(expectedAdditional);
+        }
+      });
+    });
+  });
+
   describe('Edge Cases', () => {
     it('should handle empty description', () => {
       const testData = TestHelpers.createTestData({ description: '' });

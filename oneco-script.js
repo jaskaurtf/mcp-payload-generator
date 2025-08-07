@@ -4,17 +4,17 @@ const path = require('path');
 
 // === CURRENCY CODE TO COUNTRY MAPPING ===
 const CURRENCY_MAP = {
-  '036': { name: 'Australia', code: 'AUD', fullCode: 'AUD_Australia_036' },
-  124: { name: 'Canada', code: 'CAD', fullCode: 'CAD_Canada_124' },
-  344: { name: 'HongKong', code: 'HKD', fullCode: 'HKD_HongKong_344' },
-  392: { name: 'Japan', code: 'JPY', fullCode: 'JPY_Japan_392' },
-  400: { name: 'Jordan', code: 'JOD', fullCode: 'JOD_Jordan_400' },
-  554: { name: 'NewZealand', code: 'NZD', fullCode: 'NZD_NewZealand_554' },
-  702: { name: 'Singapore', code: 'SGD', fullCode: 'SGD_Singapore_702' },
-  764: { name: 'Thailand', code: 'THB', fullCode: 'THB_Thailand_764' },
-  840: { name: 'United States', code: 'USD', fullCode: 'USD_UnitedStates_840' },
-  978: { name: 'Europe', code: 'EUR', fullCode: 'EUR_Europe_978' },
-  826: { name: 'United Kingdom', code: 'GBP', fullCode: 'GBP_UnitedKingdom_826' },
+  '036': { name: 'Australia', code: 'AUD', fullCode: 'AUD_Australia_036', hasDecimals: true },
+  124: { name: 'Canada', code: 'CAD', fullCode: 'CAD_Canada_124', hasDecimals: true },
+  344: { name: 'HongKong', code: 'HKD', fullCode: 'HKD_HongKong_344', hasDecimals: true },
+  392: { name: 'Japan', code: 'JPY', fullCode: 'JPY_Japan_392', hasDecimals: false },
+  400: { name: 'Jordan', code: 'JOD', fullCode: 'JOD_Jordan_400', hasDecimals: true },
+  554: { name: 'NewZealand', code: 'NZD', fullCode: 'NZD_NewZealand_554', hasDecimals: true },
+  702: { name: 'Singapore', code: 'SGD', fullCode: 'SGD_Singapore_702', hasDecimals: true },
+  764: { name: 'Thailand', code: 'THB', fullCode: 'THB_Thailand_764', hasDecimals: true },
+  840: { name: 'United States', code: 'USD', fullCode: 'USD_UnitedStates_840', hasDecimals: true },
+  978: { name: 'Europe', code: 'EUR', fullCode: 'EUR_Europe_978', hasDecimals: true },
+  826: { name: 'United Kingdom', code: 'GBP', fullCode: 'GBP_UnitedKingdom_826', hasDecimals: true },
 };
 
 // Function to get currency with country name
@@ -134,7 +134,7 @@ function handleBillPayment(value) {
   }
 }
 
-function parseAdditionalAmounts(amtStr, typeStr) {
+function parseAdditionalAmounts(amtStr, typeStr, currency = null) {
   // Return empty array if either parameter is missing
   if (!amtStr || !typeStr) return [];
 
@@ -153,7 +153,9 @@ function parseAdditionalAmounts(amtStr, typeStr) {
       const amount = parseFloat(amountStr) || 0;
       return {
         type: normalizedType,
-        amount: String(Math.round(amount * 100)), // Convert to cents
+        amount: currency && currency.hasDecimals === false 
+          ? String(Math.round(amount))  // For currencies like JPY, keep as-is
+          : String(Math.round(amount * 100))  // For currencies with decimals, convert to smallest unit
       };
     })
     .filter(Boolean); // Remove null entries
@@ -206,6 +208,10 @@ function detectSecureAuthType(description) {
 function mapRowToJson(row) {
   const jsonOutput = { ...DEFAULTS };
 
+  // Get currency info early to use for amount processing
+  const currencyCode = String(row['trans. currency'] || '840').trim();
+  const currency = CURRENCY_MAP[currencyCode];
+
   // Map direct fields
   Object.entries(FIELD_MAP).forEach(([header, jsonKey]) => {
     const value = row[header];
@@ -216,13 +222,19 @@ function mapRowToJson(row) {
         jsonOutput[jsonKey] = String(value).trim().charAt(0).toUpperCase();
         break;
       case 'transaction_amount':
-        // Convert decimal amount to cents (remove decimal point)
+        // Convert amount based on currency type
         const amount = parseFloat(value) || 0;
-        jsonOutput[jsonKey] = String(Math.round(amount * 100));
+        if (currency && currency.hasDecimals === false) {
+          // For currencies like JPY that don't use decimal subdivisions, keep as-is
+          jsonOutput[jsonKey] = String(Math.round(amount));
+        } else {
+          // For currencies with decimals, convert to smallest unit (cents)
+          jsonOutput[jsonKey] = String(Math.round(amount * 100));
+        }
         break;
       case 'currency_code':
         // Convert numeric currency code to currency abbreviation
-        jsonOutput[jsonKey] = getCurrencyCode(String(value).trim());
+        jsonOutput[jsonKey] = getCurrencyCode(currencyCode);
         break;
       case 'bill_payment':
         Object.assign(jsonOutput, handleBillPayment(value));
@@ -247,7 +259,8 @@ function mapRowToJson(row) {
   // Handle additional amounts
   const additionalAmounts = parseAdditionalAmounts(
     row['additional amount'],
-    row['additional amount type']
+    row['additional amount type'],
+    currency
   );
   if (additionalAmounts.length > 0) {
     jsonOutput.additional_amounts = additionalAmounts;

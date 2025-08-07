@@ -39,7 +39,7 @@ const TEST_DATA = {
     usd: { 'trans. currency': '840' },
     eur: { 'trans. currency': '978' },
     gbp: { 'trans. currency': '826' },
-    jpy: { 'trans. currency': '392' },
+    jpy: { 'trans. currency': '392' }, // JPY - no decimal subdivisions
   },
 
   // Security authentication scenarios
