@@ -143,25 +143,27 @@ describe('OneCo Script - Security Authentication', () => {
       },
     ];
 
-    currencyAmountTests.forEach(({ name, currency, amount, expectedAmount, additionalAmount, expectedAdditional }) => {
-      it(name, () => {
-        const testData = TestHelpers.createTestData({
-          'trans. currency': currency,
-          'transaction amount': amount,
-          'additional amount': additionalAmount,
-          'additional amount type': 'clinical',
-        });
-        
-        const result = processSheetData('test', [testData]);
-        const output = result[0].jsonOutput;
+    currencyAmountTests.forEach(
+      ({ name, currency, amount, expectedAmount, additionalAmount, expectedAdditional }) => {
+        it(name, () => {
+          const testData = TestHelpers.createTestData({
+            'trans. currency': currency,
+            'transaction amount': amount,
+            'additional amount': additionalAmount,
+            'additional amount type': 'clinical',
+          });
 
-        expect(output.transaction_amount).toBe(expectedAmount);
-        
-        if (output.additional_amounts && output.additional_amounts.length > 0) {
-          expect(output.additional_amounts[0].amount).toBe(expectedAdditional);
-        }
-      });
-    });
+          const result = processSheetData('test', [testData]);
+          const output = result[0].jsonOutput;
+
+          expect(output.transaction_amount).toBe(expectedAmount);
+
+          if (output.additional_amounts && output.additional_amounts.length > 0) {
+            expect(output.additional_amounts[0].amount).toBe(expectedAdditional);
+          }
+        });
+      }
+    );
   });
 
   describe('Edge Cases', () => {

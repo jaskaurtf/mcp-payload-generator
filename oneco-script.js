@@ -14,7 +14,12 @@ const CURRENCY_MAP = {
   764: { name: 'Thailand', code: 'THB', fullCode: 'THB_Thailand_764', hasDecimals: true },
   840: { name: 'United States', code: 'USD', fullCode: 'USD_UnitedStates_840', hasDecimals: true },
   978: { name: 'Europe', code: 'EUR', fullCode: 'EUR_Europe_978', hasDecimals: true },
-  826: { name: 'United Kingdom', code: 'GBP', fullCode: 'GBP_UnitedKingdom_826', hasDecimals: true },
+  826: {
+    name: 'United Kingdom',
+    code: 'GBP',
+    fullCode: 'GBP_UnitedKingdom_826',
+    hasDecimals: true,
+  },
 };
 
 // Function to get currency with country name
@@ -153,9 +158,10 @@ function parseAdditionalAmounts(amtStr, typeStr, currency = null) {
       const amount = parseFloat(amountStr) || 0;
       return {
         type: normalizedType,
-        amount: currency && currency.hasDecimals === false 
-          ? String(Math.round(amount))  // For currencies like JPY, keep as-is
-          : String(Math.round(amount * 100))  // For currencies with decimals, convert to smallest unit
+        amount:
+          currency && currency.hasDecimals === false
+            ? String(Math.round(amount)) // For currencies like JPY, keep as-is
+            : String(Math.round(amount * 100)), // For currencies with decimals, convert to smallest unit
       };
     })
     .filter(Boolean); // Remove null entries
