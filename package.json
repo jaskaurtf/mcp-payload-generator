@@ -18,7 +18,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "csv-writer": "^1.6.0",
     "fs-extra": "^11.3.0",
     "glob": "^11.0.3",
     "path": "^0.12.7",
