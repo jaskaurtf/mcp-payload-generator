@@ -2,6 +2,26 @@ const xlsx = require('xlsx');
 const fs = require('fs-extra');
 const path = require('path');
 
+// === CURRENCY CODE TO COUNTRY MAPPING ===
+const CURRENCY_COUNTRY_MAP = {
+  '036': 'AUD_Australia_036',
+  124: 'CAD_Canada_124',
+  344: 'HKD_HongKong_344',
+  392: 'JPY_Japan_392',
+  400: 'JOD_Jordan_400',
+  554: 'NZD_NewZealand_554',
+  702: 'SGD_Singapore_702',
+  764: 'THB_Thailand_764',
+  840: 'USD_UnitedStates_840',
+  978: 'EUR_Europe_978',
+  826: 'GBP_UnitedKingdom_826',
+};
+
+// Function to get currency with country name
+function getCurrencyWithCountry(currencyCode) {
+  return CURRENCY_COUNTRY_MAP[currencyCode] || currencyCode;
+}
+
 // === CONFIGURATION ===
 const DEFAULT_EXCEL_FILE_PATH = 'TestScript-test.xlsx';
 const DEFAULT_OUTPUT_BASE_DIR = 'output/json';
@@ -129,16 +149,19 @@ function processSheetData(sheetName, rawData, outputBaseDir = OUTPUT_BASE_DIR) {
       row['test case number'] || `unknown-${Math.random().toString(36).slice(2, 8)}`;
     // Group by currency code
     const currencyCode = (row['trans. currency'] || 'unknown').toUpperCase().replace(/\s+/g, '');
-    // Add sheetName and currencyCode to output path
+    // Get currency with country name (e.g., "400" becomes "JOD_Jordan_400")
+    const currencyWithCountry = getCurrencyWithCountry(currencyCode);
+    // Add sheetName and currencyWithCountry to output path
     const outputDir = path.join(
       outputBaseDir,
       sheetName,
-      currencyCode,
+      currencyWithCountry,
       paymentType,
       transTypeFolder,
       cardType
     );
-    const outputPath = path.join(outputDir, `${orderNumber}.json`);
+    // Include the currency with country information in the filename
+    const outputPath = path.join(outputDir, `${orderNumber}_${currencyWithCountry}.json`);
     outputs.push({ outputDir, outputPath, jsonOutput });
   });
   return outputs;

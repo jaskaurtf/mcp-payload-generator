@@ -1,25 +1,69 @@
-function buildRequest(type, jsonBody) {
+function buildRequest(type, jsonBody, description = '', orderNumber = '', transactionType = '') {
+  // Determine HTTP method based on description
+  const method = description.toLowerCase().includes('void') ? 'PUT' : 'POST';
+
+  // Calculate dynamic value for PUT requests (order_number - 1) as a placeholder
+  const dynamicValue =
+    method === 'PUT' && orderNumber
+      ? `{{${String(Number(orderNumber) - 1)}}}`
+      : method === 'PUT'
+        ? '{{dynamicValue}}'
+        : '';
+
+  // Determine URL ending based on transaction type
+  const getTransactionEndpoint = (transactionType) => {
+    const type = transactionType.toLowerCase();
+    switch (type) {
+      case 'authorization':
+        return '/sale/keyed';
+      case 'refund':
+        return '/refund/keyed';
+      case 'verification':
+        return '/avs-only/keyed';
+      default:
+        return '/sale/keyed'; // default to authorization
+    }
+  };
+
   switch (type) {
     case 'zgate':
+      const zgateUrl =
+        method === 'PUT'
+          ? `{{url}}/{{namespace}}/transactions/${dynamicValue}/void`
+          : '{{url}}/{{namespace}}/transactions';
+      const zgatePath =
+        method === 'PUT'
+          ? ['{{namespace}}', 'transactions', dynamicValue, 'void']
+          : ['{{namespace}}', 'transactions'];
+
       return {
-        method: 'POST',
+        method: method,
         header: [
           { key: 'user-id', value: '{{ecomm_user_id}}' },
           { key: 'user-key', value: '{{ecomm_user_key}}' },
           { key: 'Content-Type', value: 'application/json' },
         ],
-        body: { mode: 'raw', raw: jsonBody },
+        body: method === 'PUT' ? { mode: 'raw', raw: '' } : { mode: 'raw', raw: jsonBody },
         url: {
-          raw: 'https://{{url}}/{{namespace}}/transactions',
-          protocol: 'https',
+          raw: zgateUrl,
           host: ['{{url}}'],
-          path: ['{{namespace}}', 'transactions'],
+          path: zgatePath,
         },
       };
 
     case 'oneCo':
+      const endpoint = getTransactionEndpoint(transactionType);
+      const oneCoUrl =
+        method === 'PUT'
+          ? `{{url}}/{{namespace}}/transactions/${dynamicValue}/void`
+          : `{{url}}/{{namespace}}/transactions/cc${endpoint}`;
+      const oneCoPath =
+        method === 'PUT'
+          ? ['{{namespace}}', 'transactions', dynamicValue, 'void']
+          : ['{{namespace}}', `transactions/cc${endpoint}`];
+
       return {
-        method: 'POST',
+        method: method,
         header: [
           { key: 'user-id', value: '{{user-id}}' },
           { key: 'user-api-key', value: '{{user-api-key}}' },
@@ -28,12 +72,11 @@ function buildRequest(type, jsonBody) {
           { key: 'Accept', value: 'application/json' },
           { key: 'access-token', value: '{{access-token}}' },
         ],
-        body: { mode: 'raw', raw: jsonBody },
+        body: method === 'PUT' ? { mode: 'raw', raw: '' } : { mode: 'raw', raw: jsonBody },
         url: {
-          raw: 'https://{{url}}/{{namespace}}/transactions/cc/sale/keyed',
-          protocol: 'https',
+          raw: oneCoUrl,
           host: ['{{url}}'],
-          path: ['{{namespace}}', 'transactions/cc/sale/keyed'],
+          path: oneCoPath,
         },
       };
 

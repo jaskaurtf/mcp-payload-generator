@@ -1,0 +1,11 @@
+{
+  "location_id": "{{location_id}}",
+  "product_transaction_id": "{{product_transaction_id_ecommerce}}",
+  "exp_date": "1226",
+  "account_number": "4264281500006662",
+  "transaction_amount": "1000",
+  "entry_mode_id": "K",
+  "currency_code": "USD",
+  "order_number": "TEST123",
+  // "description": "Void No encryption or tokenization SSL transaction. Send XML tag EcommTxnInd with the value of 03."
+}
