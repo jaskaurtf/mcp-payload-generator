@@ -129,7 +129,6 @@ async function generatePostmanCollectionsByTransactionType() {
     const jsonBody = JSON.stringify(dataForPostman, null, 2);
 
     const pathParts = file.split(path.sep);
-    const pathLength = pathParts.length;
     // Robustly extract sheet name and currency code from file path (folders under 'json')
     const jsonRootIdx = pathParts.findIndex((p) => p === 'json');
     let sheetName = 'UNKNOWN_SHEET';
@@ -147,10 +146,6 @@ async function generatePostmanCollectionsByTransactionType() {
       sheetName = pathParts[jsonRootIdx + 1] || 'UNKNOWN_SHEET';
       currencyCodeFromPath = (pathParts[jsonRootIdx + 2] || '').toUpperCase();
     }
-    const paymentType =
-      jsonRootIdx !== -1 && pathParts.length > jsonRootIdx + 3
-        ? pathParts[jsonRootIdx + 3].toUpperCase()
-        : (data.payment_type || 'unknown').toUpperCase();
     const transactionType =
       jsonRootIdx !== -1 && pathParts.length > jsonRootIdx + 4
         ? pathParts[jsonRootIdx + 4].toUpperCase()

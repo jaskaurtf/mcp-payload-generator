@@ -94,7 +94,7 @@ function handleBillPayment(value) {
   // Default flags for all payment types
   const defaultFlags = {
     bill_payment: false,
-    installment: false,
+    // installment: false,
     installment_number: undefined,
     installment_count: undefined,
     installment_counter: undefined,
@@ -113,7 +113,7 @@ function handleBillPayment(value) {
     case 'Installment':
       return {
         ...baseConfig,
-        installment: true,
+        // installment: true,
         installment_number: 1,
         installment_count: 1,
         installment_counter: 1,
@@ -249,7 +249,12 @@ function mapRowToJson(row) {
         jsonOutput.billing_address = createBillingAddress(row);
         break;
       case 'description':
-        // Skip adding description to JSON output - it will be added as a comment
+        if (value.toLowerCase().includes('crdonfile') && value.toLowerCase().includes('initial')) {
+          jsonOutput.cof_type = 1;
+          if (value.toLowerCase().includes('merchant')) {
+            jsonOutput.installment = 1;
+          }
+        }
         break;
       default:
         jsonOutput[jsonKey] = String(value).trim();
