@@ -194,11 +194,71 @@ async function generatePostmanCollectionsByTransactionType() {
           },
         },
       ],
-      request: buildRequest(requestType, jsonBody, description, orderNumber, transactionType),
+      request: buildRequest(requestType, jsonBody, description, orderNumber, transactionType, cofType),
       response: [],
       sheetName: sheetName.toUpperCase(),
       postmanTypeFolder, // Store type for output path
     };
+
+    // If cof_type == 1, add the token creation request
+    // If cof_type == 1, add the token creation request
+    if (cofType === '1') {
+      const createTokenRequest = {
+        name: `Create Token for COF - ${name}`,
+        event: [
+          {
+            listen: 'test',
+            script: {
+              type: 'text/javascript',
+              exec: `
+                let response = pm.response.json();
+                let responseCode = pm.response;
+                tests['Status code is 201'] = responseCode.code === 201;
+
+                if (responseCode.code === 201) {
+                  var resp = JSON.parse(responseBody);
+                  postman.setGlobalVariable("token_" + ${data.account_number}, resp.data.id);
+                }
+              `,
+            },
+          },
+        ],
+        request: {
+          url: '{{url}}/{{namespace}}/tokens/cc',
+          method: 'POST',
+          header: postmanRequest.request.header || [],
+          body: {
+            mode: 'raw',
+            raw: JSON.stringify({
+              account_number: data.account_number,
+              location_id: '{{location_id}}',
+              exp_date: data.exp_date,
+              billing_address: data.billing_address,
+            }, null, 2),
+            options: { raw: { language: 'json' } },
+          },
+        },
+        response: [],
+      };
+
+      // Add the create token request first
+      requestsByTypeAndMode[groupKey].push(createTokenRequest);
+
+      postmanRequest.request.body = {
+        mode: 'raw',
+        raw: JSON.stringify({
+          token_id: `{{token_${data.account_number}}}`,
+          location_id: '{{location_id}}',
+          product_transaction_id: '{{product_transaction_id}}',
+          certification_override: {
+            cof_type: '1',
+          },
+        }, null, 2),
+        options: { raw: { language: 'json' } },
+      };
+    }
+
+
     requestsByTypeAndMode[groupKey].push(postmanRequest);
   }
 

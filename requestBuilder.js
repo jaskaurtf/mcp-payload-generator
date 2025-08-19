@@ -1,4 +1,4 @@
-function buildRequest(type, jsonBody, description = '', orderNumber = '', transactionType = '') {
+function buildRequest(type, jsonBody, description = '', orderNumber = '', transactionType = '', cofType = '') {
   // Determine HTTP method based on description
   const method = description.toLowerCase().includes('void') ? 'PUT' : 'POST';
 
@@ -11,7 +11,7 @@ function buildRequest(type, jsonBody, description = '', orderNumber = '', transa
         : '';
 
   // Determine URL ending based on transaction type
-  const getTransactionEndpoint = (transactionType) => {
+  const getTransactionEndpoint = (transactionType, cofType) => {
     const type = transactionType.toLowerCase();
     switch (type) {
       case 'authorization':
@@ -19,7 +19,11 @@ function buildRequest(type, jsonBody, description = '', orderNumber = '', transa
       case 'refund':
         return '/refund/keyed';
       case 'verification':
-        return '/avs-only/keyed';
+        if (cofType === '1') {
+          return '/avs-only/token';
+        } else {
+          return '/avs-only/keyed';
+        }
       default:
         return '/sale/keyed'; // default to authorization
     }
@@ -52,7 +56,7 @@ function buildRequest(type, jsonBody, description = '', orderNumber = '', transa
       };
 
     case 'oneCo':
-      const endpoint = getTransactionEndpoint(transactionType);
+      const endpoint = getTransactionEndpoint(transactionType, cofType);
       const oneCoUrl =
         method === 'PUT'
           ? `{{url}}/{{namespace}}/transactions/${dynamicValue}/void`
