@@ -99,7 +99,6 @@ function handleBillPayment(value) {
     installment_count: undefined,
     installment_counter: undefined,
     installment_total: undefined,
-    deferred_auth: false,
     recurring_flag: undefined,
   };
 
@@ -126,12 +125,6 @@ function handleBillPayment(value) {
         ...baseConfig,
         recurring_flag: 'yes',
         installment_counter: 1,
-      };
-
-    case 'Deferred':
-      return {
-        ...baseConfig,
-        deferred_auth: true,
       };
 
     default:
@@ -250,9 +243,12 @@ function mapRowToJson(row) {
         break;
       case 'description':
         if (value.toLowerCase().includes('crdonfile') && value.toLowerCase().includes('initial')) {
-          jsonOutput.cof_type = 1;
+          jsonOutput.save_account = 1;
           if (value.toLowerCase().includes('merchant')) {
             jsonOutput.installment = 1;
+          }
+          if (row['ccv data']) {
+            jsonOutput.cvv = row['ccv data'];
           }
         }
         break;
@@ -263,9 +259,9 @@ function mapRowToJson(row) {
 
   // Add initiation_type only if entry mode is COF
   const entryMode = (row['entry mode'] || '').trim().toLowerCase();
-  if (entryMode === 'cof') {
-    jsonOutput.initiation_type = '';
-  }
+  // if (entryMode === 'cof') {
+  //   jsonOutput.initiation_type = '';
+  // }
 
   // Handle additional amounts
   const additionalAmounts = parseAdditionalAmounts(
